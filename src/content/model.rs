@@ -66,11 +66,15 @@ pub struct Experience {
     pub roles: Vec<Role>,
 }
 
-/// Одно место работы.
+/// Место работы.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Role {
     pub company: String,
+    /// Короткое имя для полосы карьеры, если полное не влезает в отрезок.
+    /// В остальных местах печатается `company`.
+    #[serde(default)]
+    pub short: Option<String>,
     pub title: String,
     /// Город, а для давних мест — ещё и перечень клиентов.
     pub place: String,

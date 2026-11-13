@@ -8,6 +8,7 @@
 pub mod date;
 pub mod error;
 pub mod model;
+pub mod span;
 
 use std::path::Path;
 use std::sync::OnceLock;
@@ -15,6 +16,7 @@ use std::sync::OnceLock;
 pub use date::{End, YearMonth};
 pub use error::{ContentError, ContentErrors};
 pub use model::{Experience, Link, Profile, Project, Projects, Role, Stack, StackGroup};
+pub use span::{Tenure, Timeline};
 
 const PROFILE_FILE: &str = "profile.toml";
 const STACK_FILE: &str = "stack.toml";
@@ -258,6 +260,9 @@ fn validate_experience(experience: &Experience, errors: &mut Vec<ContentError>) 
     for (index, role) in experience.roles.iter().enumerate() {
         let at = |field: &str| format!("roles[{index}].{field}");
         require_text(errors, EXPERIENCE_FILE, at("company"), &role.company);
+        if let Some(short) = &role.short {
+            require_text(errors, EXPERIENCE_FILE, at("short"), short);
+        }
         require_text(errors, EXPERIENCE_FILE, at("title"), &role.title);
         require_text(errors, EXPERIENCE_FILE, at("place"), &role.place);
 

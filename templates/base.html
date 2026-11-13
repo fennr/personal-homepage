@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ page.name }} — {{ page.role }}{% endblock %}</title>
+<meta name="description" content="{{ page.summary }}">
+<meta property="og:type" content="profile">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="fennr.ru">
+<meta property="og:title" content="{% block og_title %}{{ page.name }}{% endblock %}">
+<meta property="og:description" content="{{ page.summary }}">
+<meta property="og:url" content="https://fennr.ru/">
+<link rel="canonical" href="{% block canonical %}https://fennr.ru/{% endblock %}">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/static/fonts.css">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+{% block content %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>{{ page.name }}</h1>
+      <p class="role">{{ page.role }}</p>
+      <p class="summary">{{ page.summary }}</p>
+      <div class="actions">
+        {% match page.email %}
+          {% when Some with (email) %}
+            <a class="btn" href="mailto:{{ email }}">Написать</a>
+          {% when None %}
+        {% endmatch %}
+        {% match page.resume %}
+          {% when Some with (resume) %}
+            <a class="alt" href="{{ resume.href }}">{{ resume.label }}</a>
+          {% when None %}
+        {% endmatch %}
+      </div>
+    </div>
+
+    <dl class="meta">
+      {% for fact in page.facts %}
+      <div>
+        <dt>{{ fact.label }}</dt>
+        <dd>
+          {% match fact.href %}
+            {% when Some with (href) %}<a href="{{ href }}">{{ fact.value }}</a>
+            {% when None %}{{ fact.value }}
+          {% endmatch %}
+        </dd>
+      </div>
+      {% endfor %}
+    </dl>
+  </header>
+
+  <div class="career">
+    <div class="bar">
+      {% for segment in page.timeline.segments %}
+      <div class="seg{% if segment.current %} now{% endif %}" style="flex: {{ segment.months }}">{{ segment.company }}</div>
+      {% endfor %}
+    </div>
+    <div class="axis">
+      {% for tick in page.timeline.ticks %}
+      <span style="left: {{ tick.percent }}%">{{ tick.year }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <section>
+    <h2>О себе</h2>
+    <div class="body">
+      {% for paragraph in page.about %}
+      <p>{{ paragraph }}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2>Стек</h2>
+    <div class="body">
+      <table>
+        {% for row in page.stack %}
+        <tr>
+          <th>{{ row.title }}</th>
+          <td>
+            {% for item in row.items %}{% if item.emphasis %}<b>{{ item.text }}</b>{% else %}{{ item.text }}{% endif %}{% if !loop.last %}, {% endif %}{% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Опыт</h2>
+    <div class="body">
+      {% for role in page.roles %}
+      <div class="job">
+        <div class="dates">{{ role.period }}</div>
+        <div>
+          <h3>{{ role.title }}</h3>
+          <p class="where">{{ role.company }}, {{ role.place }}</p>
+          {% match role.summary %}
+            {% when Some with (summary) %}<p class="job-summary">{{ summary }}</p>
+            {% when None %}
+          {% endmatch %}
+          {% if !role.bullets.is_empty() %}
+          <ul>
+            {% for bullet in role.bullets %}
+            <li>{{ bullet }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2>Проекты</h2>
+    <div class="body">
+      <div class="projects">
+        {% for project in page.projects %}
+        <div class="project">
+          <h3><a href="{{ project.href }}">{{ project.name }}</a></h3>
+          <p class="what">{{ project.what }}</p>
+          <p class="tech">{{ project.tech }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <h2>Контакты</h2>
+    <div>
+      <div class="contacts">
+        {% for contact in page.contacts %}
+        <a href="{{ contact.href }}">{{ contact.label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </footer>
+
+</div>
+{% endblock %}

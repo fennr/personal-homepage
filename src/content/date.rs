@@ -42,6 +42,20 @@ impl YearMonth {
     pub fn month(self) -> u8 {
         self.month
     }
+
+    /// Месяц по году и номеру; `None`, если номер вне 1–12.
+    pub fn new(year: u16, month: u8) -> Option<Self> {
+        if year == 0 || !(1..=12).contains(&month) {
+            return None;
+        }
+        Some(Self { year, month })
+    }
+
+    /// Порядковый номер месяца от начала летоисчисления: по нему считается
+    /// разница между датами.
+    pub fn ordinal(self) -> i32 {
+        i32::from(self.year) * 12 + i32::from(self.month)
+    }
 }
 
 impl fmt::Display for YearMonth {

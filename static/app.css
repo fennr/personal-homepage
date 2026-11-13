@@ -1,0 +1,410 @@
+/* Обычная версия страницы: светлый документ с одним акцентом.
+   Палитра и типографика описаны в docs/decisions.md; шрифты — в fonts.css. */
+
+:root {
+  --paper: #F1F2EE;
+  --paper-2: #DFE1DA;
+  --ink: #16191B;
+  --ink-2: #4E585C;
+  --line: #C6C9C2;
+  --line-soft: #D8DAD3;
+  --accent: #1C4E80;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16.5px/1.62 "IBM Plex Sans", system-ui, sans-serif;
+  /* Цифры в датах и цифрах стажа не должны «плясать» при наведении. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: #9AA09B;
+}
+
+a:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+/* Фокус виден с клавиатуры, но не появляется на мышиный клик. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 64px 44px 96px;
+}
+
+/* ---------- шапка ---------- */
+
+header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 0 56px;
+  align-items: start;
+}
+
+h1 {
+  font: 600 54px/1.02 "IBM Plex Sans Condensed", sans-serif;
+  letter-spacing: -0.015em;
+  margin: 0 0 14px;
+}
+
+.role {
+  margin: 0;
+  font-size: 17px;
+  color: var(--ink-2);
+  max-width: 46ch;
+}
+
+.summary {
+  margin: 10px 0 0;
+  max-width: 52ch;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-top: 28px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 11px 20px 12px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 2px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.actions .alt {
+  font-size: 15px;
+}
+
+.meta {
+  margin: 6px 0 0;
+}
+
+.meta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px 0;
+}
+
+.meta dt {
+  font: 500 12.5px/1.5 "IBM Plex Sans Condensed", sans-serif;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+
+.meta dd {
+  margin: 0;
+  font-size: 14.5px;
+  text-align: right;
+}
+
+/* ---------- полоса карьеры ---------- */
+
+.career {
+  margin-top: 64px;
+}
+
+.bar {
+  display: flex;
+  height: 54px;
+}
+
+.seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--paper-2);
+  color: #3A4245;
+  font: 600 12.5px/1 "IBM Plex Sans Condensed", sans-serif;
+  letter-spacing: 0.03em;
+  border-right: 3px solid var(--paper);
+}
+
+.seg:last-child {
+  border-right: 0;
+}
+
+.seg.now {
+  background: var(--accent);
+  color: #F4F6F3;
+}
+
+.axis {
+  position: relative;
+  height: 24px;
+  margin-top: 8px;
+}
+
+.axis span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font: 500 12px/1 "IBM Plex Sans Condensed", sans-serif;
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+
+.axis span::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 1px;
+  height: 6px;
+  background: var(--line);
+}
+
+.axis span:last-child {
+  transform: translateX(-100%);
+}
+
+/* ---------- разделы ---------- */
+
+section {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 0 40px;
+  border-top: 1px solid var(--line);
+  padding-top: 26px;
+  margin-top: 56px;
+}
+
+h2 {
+  font: 600 21px/1.15 "IBM Plex Sans Condensed", sans-serif;
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
+.body {
+  max-width: 64ch;
+}
+
+.body p {
+  margin: 0 0 14px;
+}
+
+.body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- стек ---------- */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: baseline;
+  padding: 9px 0;
+}
+
+tr + tr th,
+tr + tr td {
+  border-top: 1px solid var(--line-soft);
+}
+
+th {
+  width: 148px;
+  font: 500 13px/1.5 "IBM Plex Sans Condensed", sans-serif;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+
+td {
+  font-size: 15.5px;
+}
+
+td b {
+  font-weight: 500;
+}
+
+/* ---------- опыт ---------- */
+
+.job {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 0 24px;
+}
+
+.job + .job {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.dates {
+  font: 500 12.5px/1.55 "IBM Plex Sans Condensed", sans-serif;
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+
+.job h3 {
+  font: 600 17.5px/1.35 "IBM Plex Sans", sans-serif;
+  margin: 0 0 2px;
+}
+
+.where {
+  margin: 0 0 10px;
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+
+.job-summary {
+  margin: 0;
+  font-size: 15.5px;
+}
+
+.job ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.job li {
+  margin-bottom: 6px;
+  font-size: 15.5px;
+}
+
+.job li:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- проекты ---------- */
+
+.projects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px 40px;
+}
+
+.project h3 {
+  font: 600 15.5px/1.35 "IBM Plex Sans", sans-serif;
+  margin: 0 0 3px;
+}
+
+.project .what {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.project .tech {
+  margin: 6px 0 0;
+  font: 500 12.5px/1.4 "IBM Plex Sans Condensed", sans-serif;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- подвал ---------- */
+
+footer {
+  border-top: 1px solid var(--line);
+  margin-top: 64px;
+  padding-top: 26px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 0 40px;
+  font-size: 15px;
+}
+
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+}
+
+/* ---------- узкий экран ---------- */
+
+@media (max-width: 860px) {
+  .wrap {
+    padding: 40px 22px 80px;
+  }
+
+  header,
+  section,
+  footer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  header {
+    gap: 28px;
+  }
+
+  section {
+    gap: 18px;
+  }
+
+  h1 {
+    font-size: 34px;
+  }
+
+  .meta div {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .meta dd {
+    text-align: left;
+  }
+
+  .projects {
+    grid-template-columns: 1fr;
+  }
+
+  .job {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  /* Полоса карьеры на узком экране: коротким отрезкам подпись не влезает,
+     поэтому остаётся только заливка, а расшифровка — в списке опыта. */
+  .seg {
+    font-size: 10.5px;
+    letter-spacing: 0;
+  }
+
+  .seg.narrow {
+    color: transparent;
+  }
+
+  .axis span {
+    font-size: 10.5px;
+  }
+}

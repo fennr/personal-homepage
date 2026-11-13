@@ -17,6 +17,7 @@ bullets = [
 
 [[role]]
 company = "Юникорн (Ujin)"
+short = "Ujin"
 title = "Python Backend Developer"
 place = "Пермь"
 start = "2023-06"
@@ -46,6 +47,7 @@ summary = "ABAP для Лукойла (S/4 HANA), Алросы, КАМАЗа и 
 
 [[role]]
 company = "Бизнес Компьютер Софт"
+short = "БКС"
 title = "Разработчик"
 place = "Пермь"
 start = "2018-09"

@@ -15,6 +15,11 @@ check:
 fmt:
     cargo fmt --all
 
+# Поднять страницу локально: 127.0.0.1:8080, порт меняется через
+# PERSONAL_HOMEPAGE_BIND.
+serve:
+    cargo run
+
 # Проверить контент из content/ так же, как это сделает сервис на старте.
 content-check:
     cargo run --quiet
