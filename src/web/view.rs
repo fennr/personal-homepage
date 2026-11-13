@@ -76,8 +76,6 @@ pub struct ProjectRow {
 #[derive(Debug)]
 pub struct LinkRow {
     pub label: String,
-    /// Как найти внутри сервиса: `@fenn_r`.
-    pub handle: Option<String>,
     pub href: String,
 }
 
@@ -178,7 +176,6 @@ fn role_row(role: &Role) -> RoleRow {
 fn link_row(link: &crate::content::Link) -> LinkRow {
     LinkRow {
         label: link.label.clone(),
-        handle: link.handle.clone(),
         href: link.href.clone(),
     }
 }
@@ -326,7 +323,6 @@ mod tests {
         let primary = page.primary.as_ref().expect("основной контакт");
         assert_eq!(primary.label, "Telegram");
         assert_eq!(primary.href, "https://t.me/fenn_r");
-        assert_eq!(primary.handle.as_deref(), Some("@fenn_r"));
         assert_eq!(
             page.contacts.len(),
             5,

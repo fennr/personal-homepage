@@ -37,9 +37,6 @@ pub struct Profile {
 #[serde(deny_unknown_fields)]
 pub struct Link {
     pub label: String,
-    /// Как найти внутри сервиса, не переходя по ссылке: `@fenn_r` в Telegram.
-    #[serde(default)]
-    pub handle: Option<String>,
     pub href: String,
 }
 

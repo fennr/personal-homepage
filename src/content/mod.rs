@@ -391,9 +391,6 @@ fn require_link(
 ) {
     let field = field.into();
     require_text(errors, file, format!("{field}.label"), &link.label);
-    if let Some(handle) = &link.handle {
-        require_text(errors, file, format!("{field}.handle"), handle);
-    }
     require_text(errors, file, format!("{field}.href"), &link.href);
     if !link.href.is_empty()
         && !["https://", "http://", "mailto:", "/"]

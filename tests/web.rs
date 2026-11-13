@@ -104,9 +104,9 @@ async fn homepage_shows_the_profile_and_every_section() {
 async fn telegram_is_the_primary_contact_in_header_and_footer() {
     let reply = get("/").await;
     assert!(
-        reply.body.contains(
-            "<a class=\"btn\" href=\"https://t.me/fenn_r\">Telegram <span class=\"handle\">@fenn_r</span></a>"
-        ),
+        reply
+            .body
+            .contains("<a class=\"btn\" href=\"https://t.me/fenn_r\">Telegram</a>"),
         "основной контакт печатается кнопкой в шапке"
     );
 
@@ -116,8 +116,8 @@ async fn telegram_is_the_primary_contact_in_header_and_footer() {
         .nth(1)
         .expect("подвал с контактами");
     assert!(
-        footer.contains("Telegram <span class=\"handle\">@fenn_r</span>"),
-        "адрес в Telegram виден и в подвале"
+        footer.contains("<a href=\"https://t.me/fenn_r\">Telegram</a>"),
+        "Telegram есть и в подвале"
     );
     assert!(
         footer.find("https://t.me/fenn_r") < footer.find("mailto:fenrir1121@gmail.com"),

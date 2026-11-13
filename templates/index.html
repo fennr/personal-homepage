@@ -12,7 +12,7 @@
       <div class="actions">
         {% match page.primary %}
           {% when Some with (primary) %}
-            <a class="btn" href="{{ primary.href }}">{{ primary.label }}{% match primary.handle %}{% when Some with (handle) %} <span class="handle">{{ handle }}</span>{% when None %}{% endmatch %}</a>
+            <a class="btn" href="{{ primary.href }}">{{ primary.label }}</a>
           {% when None %}
         {% endmatch %}
         {% match page.resume %}
@@ -124,7 +124,7 @@
     <div>
       <div class="contacts">
         {% for contact in page.contacts %}
-        <a href="{{ contact.href }}">{{ contact.label }}{% match contact.handle %}{% when Some with (handle) %} <span class="handle">{{ handle }}</span>{% when None %}{% endmatch %}</a>
+        <a href="{{ contact.href }}">{{ contact.label }}</a>
         {% endfor %}
       </div>
       <p class="terminal-switch">Есть терминальная версия: <a href="/terminal">открыть терминал</a>.</p>
