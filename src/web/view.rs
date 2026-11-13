@@ -5,7 +5,7 @@
 
 use crate::content::date::End;
 use crate::content::span::{Tenure, Timeline};
-use crate::content::{Profile, Role, Site, YearMonth};
+use crate::content::{Role, Site, YearMonth};
 
 /// Всё, что нужно обычной версии страницы.
 #[derive(Debug)]
@@ -25,8 +25,8 @@ pub struct Page {
     pub projects: Vec<ProjectRow>,
     pub contacts: Vec<LinkRow>,
     pub resume: Option<LinkRow>,
-    /// Адрес для кнопки «Написать».
-    pub email: Option<String>,
+    /// Основной контакт: первый в файле, печатается кнопкой в шапке.
+    pub primary: Option<LinkRow>,
 }
 
 /// Пара «подпись — значение» в шапке; значение может быть ссылкой.
@@ -76,6 +76,8 @@ pub struct ProjectRow {
 #[derive(Debug)]
 pub struct LinkRow {
     pub label: String,
+    /// Как найти внутри сервиса: `@fenn_r`.
+    pub handle: Option<String>,
     pub href: String,
 }
 
@@ -140,7 +142,7 @@ impl Page {
                 .collect(),
             contacts: profile.contacts.iter().map(link_row).collect(),
             resume: profile.resume.as_ref().map(link_row),
-            email: email_of(profile),
+            primary: profile.contacts.first().map(link_row),
         }
     }
 }
@@ -161,9 +163,10 @@ fn stack_row(group: &crate::content::StackGroup) -> StackRow {
 
 fn role_row(role: &Role) -> RoleRow {
     RoleRow {
-        // Неразрывный пробел держит «—» на строке даты начала, а не в начале
-        // следующей: в колонке 118 px диапазон почти всегда не влезает целиком.
-        period: format!("{}\u{a0}— {}", month_label(role.start), end_label(role.end)),
+        // Диапазон разрывается перед тире, а не после: в колонке 118 px он
+        // почти всегда не влезает в строку, и «—» в конце строки читается как
+        // обрывок. Неразрывный пробел держит тире рядом с датой конца.
+        period: format!("{} —\u{a0}{}", month_label(role.start), end_label(role.end)),
         company: role.company.clone(),
         title: role.title.clone(),
         place: role.place.clone(),
@@ -175,16 +178,9 @@ fn role_row(role: &Role) -> RoleRow {
 fn link_row(link: &crate::content::Link) -> LinkRow {
     LinkRow {
         label: link.label.clone(),
+        handle: link.handle.clone(),
         href: link.href.clone(),
     }
-}
-
-/// Адрес почты из первого контакта `mailto:`.
-fn email_of(profile: &Profile) -> Option<String> {
-    profile
-        .contacts
-        .iter()
-        .find_map(|link| link.href.strip_prefix("mailto:").map(str::to_owned))
 }
 
 /// Адрес без схемы и хвостового слэша: так он читается в шапке.
@@ -260,7 +256,7 @@ fn plural(count: i32, one: &str, few: &str, many: &str) -> String {
 }
 
 /// Подпись полосы карьеры: полоса — картинка, поэтому у неё есть описание, а
-/// даты и подробности остаются в разделе «Опыт».
+/// даты и подробности остаются в разделе «Опыт». Имена — те же, что на полосе.
 fn career_label(roles: &[Role], today: YearMonth) -> String {
     let Some(oldest) = roles.last() else {
         return "Карьера".to_owned();
@@ -268,15 +264,12 @@ fn career_label(roles: &[Role], today: YearMonth) -> String {
     let companies = roles
         .iter()
         .rev()
-        .map(|role| role.company.as_str())
+        .map(|role| role.brand.as_str())
         .collect::<Vec<_>>()
         .join(", ");
     let years = format!("{}–{}", oldest.start.year(), today.year());
     match roles.first().filter(|role| role.end.is_now()) {
-        Some(current) => format!(
-            "Карьера, {years}: {companies}. Сейчас — {}.",
-            current.company
-        ),
+        Some(current) => format!("Карьера, {years}: {companies}. Сейчас — {}.", current.brand),
         None => format!("Карьера, {years}: {companies}."),
     }
 }
@@ -324,13 +317,21 @@ mod tests {
         let page = Page::build(site, month("2026-11"));
         assert_eq!(page.name, "Виктор Меркурьев");
         assert_eq!(page.roles.len(), site.roles.len());
-        assert_eq!(page.roles[0].period, "май\u{a0}2024\u{a0}— сейчас");
+        assert_eq!(page.roles[0].period, "май\u{a0}2024 —\u{a0}сейчас");
         assert_eq!(
             page.roles[4].period,
-            "сентябрь\u{a0}2018\u{a0}— декабрь\u{a0}2019"
+            "сентябрь\u{a0}2018 —\u{a0}декабрь\u{a0}2019"
         );
         assert_eq!(page.tenure, "8\u{a0}лет 3\u{a0}месяца");
-        assert_eq!(page.email.as_deref(), Some("fenrir1121@gmail.com"));
+        let primary = page.primary.as_ref().expect("основной контакт");
+        assert_eq!(primary.label, "Telegram");
+        assert_eq!(primary.href, "https://t.me/fenn_r");
+        assert_eq!(primary.handle.as_deref(), Some("@fenn_r"));
+        assert_eq!(
+            page.contacts.len(),
+            5,
+            "подвал перечисляет все контакты, а не только основной"
+        );
         assert!(
             page.facts.iter().any(|fact| fact.label == "Код"
                 && fact.href.as_deref() == Some("https://github.com/fennr")),
@@ -344,7 +345,7 @@ mod tests {
         let page = Page::build(site, month("2026-11"));
         assert_eq!(
             page.career_label,
-            "Карьера, 2018–2026: Бизнес Компьютер Софт, Сапран, Promobot, Юникорн (Ujin), Уралхим. Сейчас — Уралхим."
+            "Карьера, 2018–2026: BC Soft, Saprun, Promobot, Ujin, Uralchem. Сейчас — Uralchem."
         );
     }
 
@@ -358,6 +359,19 @@ mod tests {
             !page.roles[0].period.contains("май "),
             "месяц и год склеены"
         );
+    }
+
+    #[test]
+    fn stack_group_titles_name_a_single_theme() {
+        let site = Site::embedded().expect("контент валиден");
+        let page = Page::build(site, month("2026-11"));
+        for row in &page.stack {
+            assert!(
+                !row.title.contains(" и "),
+                "заголовок {:?} перечисляет две темы",
+                row.title
+            );
+        }
     }
 
     #[test]

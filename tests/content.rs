@@ -168,12 +168,24 @@ fn unknown_field_is_not_silently_ignored() {
 fn contact_needs_a_supported_scheme() {
     let dir = with_edit(
         "profile.toml",
-        "href = \"mailto:fenrir1121@gmail.com\"",
-        "href = \"fenrir1121@gmail.com\"",
+        "href = \"https://t.me/fenn_r\"",
+        "href = \"t.me/fenn_r\"",
     );
     let error = error_of(dir.path());
     assert!(error.contains("profile.toml: contact[0].href"), "{error}");
     assert!(error.contains("должен начинаться"), "{error}");
+}
+
+#[test]
+fn brand_on_the_career_bar_is_written_in_latin() {
+    let dir = with_edit(
+        "experience.toml",
+        "brand = \"Uralchem\"",
+        "brand = \"Уралхим\"",
+    );
+    let error = error_of(dir.path());
+    assert!(error.contains("experience.toml: roles[0].brand"), "{error}");
+    assert!(error.contains("латиницей"), "{error}");
 }
 
 #[test]

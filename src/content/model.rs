@@ -26,6 +26,8 @@ pub struct Profile {
     /// Файл резюме; отсутствует, пока резюме не собрано.
     #[serde(default)]
     pub resume: Option<Link>,
+    /// Порядок — порядок вывода: первый контакт печатается кнопкой в шапке и
+    /// стоит первым в подвале, поэтому первым идёт тот, кому пишут чаще.
     #[serde(default, rename = "contact")]
     pub contacts: Vec<Link>,
 }
@@ -35,6 +37,9 @@ pub struct Profile {
 #[serde(deny_unknown_fields)]
 pub struct Link {
     pub label: String,
+    /// Как найти внутри сервиса, не переходя по ссылке: `@fenn_r` в Telegram.
+    #[serde(default)]
+    pub handle: Option<String>,
     pub href: String,
 }
 
@@ -70,11 +75,11 @@ pub struct Experience {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Role {
+    /// Название в тексте: как компания называется в русской прозе.
     pub company: String,
-    /// Короткое имя для полосы карьеры, если полное не влезает в отрезок.
-    /// В остальных местах печатается `company`.
-    #[serde(default)]
-    pub short: Option<String>,
+    /// Имя на полосе карьеры: латиницей и в одном написании у всех мест,
+    /// иначе подписи соседних отрезков оказываются в разных алфавитах.
+    pub brand: String,
     pub title: String,
     /// Город, а для давних мест — ещё и перечень клиентов.
     pub place: String,

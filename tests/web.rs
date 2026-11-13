@@ -89,13 +89,49 @@ async fn homepage_shows_the_profile_and_every_section() {
         "Стек по группам",
         "8\u{a0}лет 3\u{a0}месяца",
         "Уралхим",
-        "май\u{a0}2024\u{a0}— сейчас",
+        "май\u{a0}2024 —\u{a0}сейчас",
         "periodparser",
         "mailto:fenrir1121@gmail.com",
     ] {
         assert!(
             reply.body.contains(expected),
             "на странице нет {expected:?}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn telegram_is_the_primary_contact_in_header_and_footer() {
+    let reply = get("/").await;
+    assert!(
+        reply.body.contains(
+            "<a class=\"btn\" href=\"https://t.me/fenn_r\">Telegram <span class=\"handle\">@fenn_r</span></a>"
+        ),
+        "основной контакт печатается кнопкой в шапке"
+    );
+
+    let footer = reply
+        .body
+        .split("class=\"contacts\"")
+        .nth(1)
+        .expect("подвал с контактами");
+    assert!(
+        footer.contains("Telegram <span class=\"handle\">@fenn_r</span>"),
+        "адрес в Telegram виден и в подвале"
+    );
+    assert!(
+        footer.find("https://t.me/fenn_r") < footer.find("mailto:fenrir1121@gmail.com"),
+        "основной контакт идёт первым"
+    );
+}
+
+#[tokio::test]
+async fn career_bar_uses_latin_brand_names() {
+    let reply = get("/").await;
+    for brand in ["BC Soft", "Saprun", "Promobot", "Ujin", "Uralchem"] {
+        assert!(
+            reply.body.contains(&format!(">{brand}</div>")),
+            "на полосе нет отрезка {brand:?}"
         );
     }
 }

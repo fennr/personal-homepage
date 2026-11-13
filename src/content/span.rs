@@ -49,8 +49,8 @@ impl Tenure {
 /// Отрезок полосы карьеры: одна компания и её длина в месяцах.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Segment {
-    /// Короткое имя: полное может не влезть в отрезок.
-    pub company: String,
+    /// Имя на полосе: то же, что `brand` места работы.
+    pub label: String,
     pub months: i32,
     pub current: bool,
     /// Отрезок уже пятой части полосы: на узком экране его подпись не
@@ -84,7 +84,7 @@ impl Timeline {
             .iter()
             .rev()
             .map(|role| Segment {
-                company: role.short.clone().unwrap_or_else(|| role.company.clone()),
+                label: role.brand.clone(),
                 months: months_inclusive(role.start, role.end.month().unwrap_or(today)).max(0),
                 current: role.end.is_now(),
                 narrow: false,
@@ -180,8 +180,13 @@ mod tests {
             "слева самое давнее место работы"
         );
         assert_eq!(
-            timeline.segments.first().map(|s| s.company.as_str()),
-            Some("БКС")
+            timeline
+                .segments
+                .iter()
+                .map(|segment| segment.label.as_str())
+                .collect::<Vec<_>>(),
+            ["BC Soft", "Saprun", "Promobot", "Ujin", "Uralchem"],
+            "слева давнее; имена на полосе — латиницей"
         );
         assert_eq!(
             timeline

@@ -335,7 +335,13 @@ fn contact(site: &Site) -> Vec<Line> {
     site.profile
         .contacts
         .iter()
-        .map(|link| Line::output(format!("{}: {}", link.label, link.href)))
+        .map(|link| {
+            // Адрес внутри сервиса печатается первым: его диктуют голосом.
+            match &link.handle {
+                Some(handle) => Line::output(format!("{}: {handle} · {}", link.label, link.href)),
+                None => Line::output(format!("{}: {}", link.label, link.href)),
+            }
+        })
         .collect()
 }
 
@@ -439,6 +445,17 @@ mod tests {
                 .count(),
             8,
             "шесть пунктов и две строки summary"
+        );
+    }
+
+    #[test]
+    fn contact_shows_the_handle_before_the_url() {
+        let answer = answer("contact", site());
+        let lines = text(&answer);
+        assert_eq!(lines[0], "contact");
+        assert_eq!(
+            lines[1], "Telegram: @fenn_r · https://t.me/fenn_r",
+            "основной контакт стоит первым и читается без перехода по ссылке"
         );
     }
 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+  Макет картинки для соцсетей: static/og.png, 1200×630.
+
+  Картинка — растр, поэтому текст в ней не может прийти из content/*.toml:
+  имя, роль и стаж повторяются здесь руками. После правки шапки картинку нужно
+  перегенерировать (нужен node):
+
+    npx playwright screenshot --viewport-size=1200,630 docs/og.html static/og.png
+
+  Токены и шрифты те же, что в app.css: макет лежит рядом, чтобы цвета не
+  разъезжались с сайтом.
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../static/fonts.css">
+<title>og.png</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    width: 1200px; height: 630px;
+    background: #F1F2EE; color: #16191B;
+    padding: 80px 84px 72px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    font: 400 16px/1.5 "IBM Plex Sans", sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font: 600 92px/1.0 "IBM Plex Sans Condensed", sans-serif; letter-spacing: -0.02em; }
+  p.role { margin-top: 20px; font-size: 31px; line-height: 1.3; color: #4E585C; max-width: 22ch; }
+  .bar { display: flex; height: 58px; }
+  .seg { display: flex; align-items: center; justify-content: center; background: #DFE1DA;
+         color: #3A4245; font: 600 15px/1 "IBM Plex Sans Condensed", sans-serif;
+         border-right: 4px solid #F1F2EE; }
+  .seg:last-child { border-right: 0; }
+  .now { background: #1C4E80; color: #F4F6F3; }
+  .foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px;
+          font-size: 21px; color: #4E585C; }
+</style>
+</head>
+<body>
+  <div>
+    <h1>Виктор Меркурьев</h1>
+    <p class="role">Бэкенд-разработчик и архитектор</p>
+  </div>
+  <div>
+    <div class="bar">
+      <div class="seg" style="flex:16">BC Soft</div>
+      <div class="seg" style="flex:34">Saprun</div>
+      <div class="seg" style="flex:8">Promobot</div>
+      <div class="seg" style="flex:11">Ujin</div>
+      <div class="seg now" style="flex:31">Uralchem</div>
+    </div>
+    <div class="foot"><span>8 лет в бэкенде, сейчас — архитектор</span><span>fennr.ru</span></div>
+  </div>
+</body>
+</html>

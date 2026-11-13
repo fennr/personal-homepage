@@ -10,9 +10,9 @@
       <p class="role">{{ page.role }}</p>
       <p class="summary">{{ page.summary }}</p>
       <div class="actions">
-        {% match page.email %}
-          {% when Some with (email) %}
-            <a class="btn" href="mailto:{{ email }}">Написать</a>
+        {% match page.primary %}
+          {% when Some with (primary) %}
+            <a class="btn" href="{{ primary.href }}">{{ primary.label }}{% match primary.handle %}{% when Some with (handle) %} <span class="handle">{{ handle }}</span>{% when None %}{% endmatch %}</a>
           {% when None %}
         {% endmatch %}
         {% match page.resume %}
@@ -42,7 +42,7 @@
   <div class="career" role="img" aria-label="{{ page.career_label }}">
     <div class="bar">
       {% for segment in page.timeline.segments %}
-      <div class="seg{% if segment.current %} now{% endif %}{% if segment.narrow %} narrow{% endif %}" style="flex: {{ segment.months }}">{{ segment.company }}</div>
+      <div class="seg{% if segment.current %} now{% endif %}{% if segment.narrow %} narrow{% endif %}" style="flex: {{ segment.months }}">{{ segment.label }}</div>
       {% endfor %}
     </div>
     <div class="axis">
@@ -124,7 +124,7 @@
     <div>
       <div class="contacts">
         {% for contact in page.contacts %}
-        <a href="{{ contact.href }}">{{ contact.label }}</a>
+        <a href="{{ contact.href }}">{{ contact.label }}{% match contact.handle %}{% when Some with (handle) %} <span class="handle">{{ handle }}</span>{% when None %}{% endmatch %}</a>
         {% endfor %}
       </div>
       <p class="terminal-switch">Есть терминальная версия: <a href="/terminal">открыть терминал</a>.</p>

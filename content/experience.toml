@@ -2,9 +2,14 @@
 #
 # Детализация падает с давностью: у текущего места — пункты, у давних — одна
 # строка `summary`. Текущее место помечается `end = "now"` и идёт первым.
+#
+# `company` печатается в тексте, `brand` — на полосе карьеры. На полосе имена
+# латиницей и в одном написании: рядом стоят Promobot и Ujin, и кириллица в
+# этой строке читалась бы как разные алфавиты в одной подписи.
 
 [[role]]
 company = "Уралхим"
+brand = "Uralchem"
 title = "Архитектор"
 place = "Пермь"
 start = "2024-05"
@@ -17,7 +22,7 @@ bullets = [
 
 [[role]]
 company = "Юникорн (Ujin)"
-short = "Ujin"
+brand = "Ujin"
 title = "Python Backend Developer"
 place = "Пермь"
 start = "2023-06"
@@ -29,6 +34,7 @@ bullets = [
 
 [[role]]
 company = "Promobot"
+brand = "Promobot"
 title = "Лингвист-разработчик"
 place = "Пермь"
 start = "2022-11"
@@ -39,6 +45,7 @@ bullets = [
 
 [[role]]
 company = "Сапран"
+brand = "Saprun"
 title = "Инженер-разработчик"
 place = "Пермь"
 start = "2020-01"
@@ -47,7 +54,7 @@ summary = "ABAP для Лукойла (S/4 HANA), Алросы, КАМАЗа и 
 
 [[role]]
 company = "Бизнес Компьютер Софт"
-short = "БКС"
+brand = "BC Soft"
 title = "Разработчик"
 place = "Пермь"
 start = "2018-09"

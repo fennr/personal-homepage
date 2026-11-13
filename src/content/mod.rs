@@ -260,8 +260,16 @@ fn validate_experience(experience: &Experience, errors: &mut Vec<ContentError>) 
     for (index, role) in experience.roles.iter().enumerate() {
         let at = |field: &str| format!("roles[{index}].{field}");
         require_text(errors, EXPERIENCE_FILE, at("company"), &role.company);
-        if let Some(short) = &role.short {
-            require_text(errors, EXPERIENCE_FILE, at("short"), short);
+        require_text(errors, EXPERIENCE_FILE, at("brand"), &role.brand);
+        if !role.brand.is_empty() && !role.brand.is_ascii() {
+            errors.push(ContentError::new(
+                EXPERIENCE_FILE,
+                at("brand"),
+                format!(
+                    "имя на полосе карьеры пишется латиницей, получено {:?}",
+                    role.brand
+                ),
+            ));
         }
         require_text(errors, EXPERIENCE_FILE, at("title"), &role.title);
         require_text(errors, EXPERIENCE_FILE, at("place"), &role.place);
@@ -383,6 +391,9 @@ fn require_link(
 ) {
     let field = field.into();
     require_text(errors, file, format!("{field}.label"), &link.label);
+    if let Some(handle) = &link.handle {
+        require_text(errors, file, format!("{field}.handle"), handle);
+    }
     require_text(errors, file, format!("{field}.href"), &link.href);
     if !link.href.is_empty()
         && !["https://", "http://", "mailto:", "/"]

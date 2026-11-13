@@ -3,6 +3,9 @@
 #
 # `emphasis` выделяет в группе то, чем работаю каждый день. Каждое имя
 # обязано встречаться в `items` этой же группы.
+#
+# Заголовки групп без «и»: строка таблицы — это одна тема, а не перечисление
+# двух. Что именно попало в группу, видно по составу справа.
 
 [[group]]
 title = "Языки"
@@ -10,7 +13,7 @@ items = ["Python", "Go", "Rust"]
 emphasis = ["Python", "Go", "Rust"]
 
 [[group]]
-title = "Сервисы и шины"
+title = "Сервисы"
 items = ["FastAPI", "FastStream", "aiohttp", "Axum", "Kafka", "RabbitMQ", "NATS", "WebSockets"]
 
 [[group]]
@@ -22,9 +25,9 @@ title = "Инфраструктура"
 items = ["Docker", "Kubernetes", "Ansible", "GitLab CI/CD", "Linux"]
 
 [[group]]
-title = "Rust и расширения"
-items = ["PyO3", "Loco", "Tauri 2"]
+title = "Rust-библиотеки"
+items = ["PyO3", "Tauri 2"]
 
 [[group]]
 title = "Аналитика"
-items = ["Apache Airflow", "pandas", "LangChain"]
+items = ["Apache Airflow", "pandas"]
