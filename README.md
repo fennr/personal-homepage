@@ -23,7 +23,7 @@
 - Тесты: правила контента на битых входах, страница и статика — запросами к
   приложению.
 
-Дальше по плану: Dockerfile и CI, выкат в homelab, снятие LiveTerm. Порядок шагов и принятые решения — в
+Дальше по плану: выкат в homelab, снятие LiveTerm. Порядок шагов и принятые решения — в
 [`docs/decisions.md`](docs/decisions.md).
 
 ## Структура
@@ -67,7 +67,29 @@ just check            # форматирование, clippy -D warnings, тес
 just serve            # страница на 127.0.0.1:8080
 just content-check    # проверить content/ так же, как это сделает сервис
 just hooks            # хук commit-msg с commitlint (нужен node)
+just image            # образ локально: personal-homepage:local
 ```
+
+## Сборка и релиз
+
+Образ собирается на `rust:1.99-alpine` (musl) и уезжает в
+`gcr.io/distroless/static-debian12:nonroot`: shell и curl внутри нет, поэтому
+`HEALTHCHECK` вызывает сам бинарь — `personal-homepage health` делает
+`GET /healthz` и возвращает код выхода. Итоговый образ — 6.7 МБ, работает с
+`read_only: true`.
+
+```sh
+just image              # собрать и проверить локально
+just release 0.2.0      # версия в Cargo.toml, коммит, тег v0.2.0
+git push origin HEAD && git push origin v0.2.0
+```
+
+Workflow `Container` на каждый push гоняет `check` (fmt, clippy, тесты) и
+собирает образ; публикация в `ghcr.io/fennr/personal-homepage` происходит только
+по тегу `vX.Y.Z`, и тег обязан совпадать с версией в `Cargo.toml`.
+
+Compose-файла здесь нет: сервис описан в репозитории `homelab`
+(`services/personal-homepage`), туда же пинится версия образа.
 
 Сообщения коммитов — Conventional Commits, трейлер `Co-authored-by` запрещён.
 Версия проекта живёт в `Cargo.toml`; node в CI не участвует.

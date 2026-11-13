@@ -1,21 +1,43 @@
-//! Точка входа бинаря: проверяет контент, поднимает HTTP-сервер.
+//! Точка входа бинаря: сервер и подкоманда `health`.
 //!
 //! Контент проверяется на старте: сервис, который отдал страницу без данных,
 //! хуже сервиса, который не запустился.
+//!
+//! Подкоманда `health` нужна контейнеру: в distroless нет ни shell, ни curl,
+//! поэтому `HEALTHCHECK` вызывает тот же бинарь, а тот сам делает
+//! `GET /healthz` и возвращает код выхода.
 
-use std::net::SocketAddr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::process::ExitCode;
+use std::time::Duration;
 
 use chrono::Datelike;
 use personal_homepage::content::{Site, YearMonth};
 use personal_homepage::web;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 /// Порт по умолчанию: внутри контейнера `0.0.0.0:8080`, локально — только
 /// петля, чтобы сервис не торчал в сеть с ноутбука.
 const DEFAULT_BIND: &str = "127.0.0.1:8080";
 
+/// Сколько ждать ответа `healthz`: этого хватает, чтобы отличить занятый
+/// процесс от зависшего.
+const HEALTH_TIMEOUT: Duration = Duration::from_secs(2);
+
 #[tokio::main]
 async fn main() -> ExitCode {
+    match std::env::args().nth(1) {
+        None => serve().await,
+        Some(argument) if argument == "health" => health().await,
+        Some(argument) => {
+            eprintln!("неизвестная подкоманда {argument:?}: поддерживается health");
+            ExitCode::from(2)
+        }
+    }
+}
+
+/// Запускает HTTP-сервер.
+async fn serve() -> ExitCode {
     let site = match Site::embedded() {
         Ok(site) => site,
         Err(errors) => {
@@ -51,6 +73,60 @@ async fn main() -> ExitCode {
             eprintln!("сервер остановился с ошибкой: {error}");
             ExitCode::FAILURE
         }
+    }
+}
+
+/// Проверяет `healthz` на том же порту, где слушает сервер.
+async fn health() -> ExitCode {
+    let target = match bind_address() {
+        Ok(bind) => SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), bind.port()),
+        Err(error) => {
+            eprintln!("{error}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    match probe(target).await {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("healthz не отвечает на {target}: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+/// Минимальный HTTP-запрос: без клиентской библиотеки, потому что больше от
+/// проверки ничего не нужно.
+async fn probe(target: SocketAddr) -> Result<(), String> {
+    let response = async {
+        let mut stream = tokio::net::TcpStream::connect(target)
+            .await
+            .map_err(|error| format!("подключение: {error}"))?;
+        let request =
+            format!("GET /healthz HTTP/1.0\r\nHost: {target}\r\nConnection: close\r\n\r\n");
+        stream
+            .write_all(request.as_bytes())
+            .await
+            .map_err(|error| format!("запрос: {error}"))?;
+        let mut response = String::new();
+        stream
+            .read_to_string(&mut response)
+            .await
+            .map_err(|error| format!("ответ: {error}"))?;
+        Ok::<String, String>(response)
+    };
+
+    let response = tokio::time::timeout(HEALTH_TIMEOUT, response)
+        .await
+        .map_err(|_| format!("нет ответа за {HEALTH_TIMEOUT:?}"))??;
+
+    if response.starts_with("HTTP/1.0 200") || response.starts_with("HTTP/1.1 200") {
+        Ok(())
+    } else {
+        Err(format!(
+            "ответ без кода 200: {:?}",
+            response.lines().next().unwrap_or_default()
+        ))
     }
 }
 

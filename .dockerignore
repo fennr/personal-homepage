@@ -1,0 +1,15 @@
+# В контекст сборки попадает только то, что компилируется в бинарь.
+.git
+.github
+target
+docs
+node_modules
+package.json
+package-lock.json
+commitlint.config.js
+scripts
+justfile
+Dockerfile
+.dockerignore
+.env
+*.md
