@@ -189,18 +189,25 @@ async fn homepage_has_a_skip_link_main_and_semantic_table() {
 }
 
 #[tokio::test]
-async fn resume_link_is_dropped_when_the_file_is_missing() {
+async fn resume_button_stands_next_to_telegram() {
     let reply = get("/").await;
+    let telegram = reply
+        .body
+        .find("<a class=\"btn\" href=\"https://t.me/fenn_r\">Telegram</a>")
+        .expect("кнопка Telegram");
+    let resume = reply
+        .body
+        .find("<a class=\"btn btn-quiet\" href=\"/static/resume.pdf\">Резюме, PDF</a>")
+        .expect("кнопка резюме");
     assert!(
-        static_resume_absent(&reply.body),
-        "ссылки на несуществующий PDF быть не должно: {}",
-        reply.body.contains("Резюме")
+        telegram < resume,
+        "резюме идёт сразу после Telegram, а не отдельным блоком"
     );
-}
-
-/// `resume.pdf` в статике нет, пока резюме не собрано шаблоном.
-fn static_resume_absent(body: &str) -> bool {
-    !body.contains("Резюме, PDF") && !body.contains("/static/resume.pdf")
+    assert_eq!(
+        status("/static/resume.pdf").await,
+        StatusCode::OK,
+        "кнопка не должна вести на 404"
+    );
 }
 
 #[tokio::test]

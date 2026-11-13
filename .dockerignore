@@ -3,6 +3,7 @@
 .github
 target
 docs
+resume
 node_modules
 package.json
 package-lock.json

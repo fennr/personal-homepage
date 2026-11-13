@@ -6,6 +6,9 @@
 //! Подкоманда `health` нужна контейнеру: в distroless нет ни shell, ни curl,
 //! поэтому `HEALTHCHECK` вызывает тот же бинарь, а тот сам делает
 //! `GET /healthz` и возвращает код выхода.
+//!
+//! Подкоманда `resume` печатает данные для PDF: их читает шаблон Typst при
+//! сборке `just resume`.
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::process::ExitCode;
@@ -29,8 +32,9 @@ async fn main() -> ExitCode {
     match std::env::args().nth(1) {
         None => serve().await,
         Some(argument) if argument == "health" => health().await,
+        Some(argument) if argument == "resume" => resume(),
         Some(argument) => {
-            eprintln!("неизвестная подкоманда {argument:?}: поддерживается health");
+            eprintln!("неизвестная подкоманда {argument:?}: поддерживаются health и resume");
             ExitCode::from(2)
         }
     }
@@ -74,6 +78,19 @@ async fn serve() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+/// Печатает JSON для шаблона PDF-резюме.
+fn resume() -> ExitCode {
+    let site = match Site::embedded() {
+        Ok(site) => site,
+        Err(errors) => {
+            eprintln!("{errors}");
+            return ExitCode::FAILURE;
+        }
+    };
+    println!("{}", personal_homepage::resume::export(site, today()));
+    ExitCode::SUCCESS
 }
 
 /// Проверяет `healthz` на том же порту, где слушает сервер.

@@ -166,6 +166,6 @@ mod tests {
     fn has_accepts_page_and_static_paths() {
         assert!(has("/static/app.css"));
         assert!(has("app.css"));
-        assert!(!has("/static/resume.pdf"));
+        assert!(!has("/static/missing.pdf"));
     }
 }

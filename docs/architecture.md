@@ -41,20 +41,29 @@ htmx из образа; сброс поля, фокус и прокрутку п
 ## Модули
 
 ```
-src/main.rs        запуск, PERSONAL_HOMEPAGE_BIND, подкоманда health, SIGTERM
+src/main.rs        запуск, PERSONAL_HOMEPAGE_BIND, подкоманды health и resume
 src/content/       контент: разбор TOML, правила, единая модель
   model.rs         структуры файлов, deny_unknown_fields
   date.rs          YearMonth и End ("now" у текущего места работы)
   span.rs          стаж, отрезки полосы, ось лет
   error.rs         ContentError: «файл: поле: что не так»
 src/terminal/      команды и текстовые ответы, без HTTP
+src/resume/        JSON для PDF-резюме: то же представление, что у страницы
 src/web/           маршруты, шаблоны, статика
   view.rs          то, что печатается: месяцы словами, склонение стажа
   static_files.rs  include_dir!, ETag, Content-Type, кэш
 templates/         base.html, index.html, terminal.html, partials/answer.html
-static/            app.css, terminal.css, fonts.css, шрифты, htmx.min.js
+resume/            resume.typ, data.json и шрифты для PDF
+static/            app.css, terminal.css, fonts.css, шрифты, htmx.min.js, resume.pdf
 tests/             content.rs — правила, terminal.rs и web.rs — HTTP
 ```
+
+## PDF-резюме
+
+PDF не собирается сервером: `just resume` печатает данные подкомандой
+`resume`, Typst верстает по ним файл в `static/resume.pdf`, и тот уезжает в
+образ как обычная статика. На сайте остаётся ссылка, а страница печатает её
+только при наличии файла.
 
 ## Статика
 

@@ -608,6 +608,7 @@ dependencies = [
  "chrono",
  "include_dir",
  "serde",
+ "serde_json",
  "tempfile",
  "tokio",
  "toml",

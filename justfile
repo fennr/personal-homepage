@@ -23,6 +23,13 @@ serve:
 content-check:
     cargo run --quiet
 
+# Пересобрать PDF-резюме: данные из бинаря, вёрстка в Typst (нужен typst).
+resume:
+    cargo run --quiet -- resume > resume/.data.json
+    mv resume/.data.json resume/data.json
+    typst compile --font-path resume/fonts resume/resume.typ static/resume.pdf
+    @echo "static/resume.pdf обновлён"
+
 # Собрать образ локально, без публикации.
 image:
     docker build --tag personal-homepage:local .

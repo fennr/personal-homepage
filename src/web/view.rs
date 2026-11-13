@@ -3,12 +3,15 @@
 //! Домен остаётся в [`crate::content`]: здесь только то, что печатается, —
 //! названия месяцев по-русски, склонение стажа, «сейчас» вместо даты.
 
+use serde::Serialize;
+
 use crate::content::date::End;
 use crate::content::span::{Tenure, Timeline};
 use crate::content::{Role, Site, YearMonth};
 
-/// Всё, что нужно обычной версии страницы.
-#[derive(Debug)]
+/// Всё, что нужно обычной версии страницы. Тот же набор строк уходит в PDF,
+/// поэтому форматирование дат и стажа не повторяется в шаблоне резюме.
+#[derive(Debug, Serialize)]
 pub struct Page {
     pub name: String,
     pub role: String,
@@ -30,7 +33,7 @@ pub struct Page {
 }
 
 /// Пара «подпись — значение» в шапке; значение может быть ссылкой.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Fact {
     pub label: String,
     pub value: String,
@@ -38,21 +41,21 @@ pub struct Fact {
 }
 
 /// Группа стека с отмеченными главными технологиями.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct StackRow {
     pub title: String,
     pub items: Vec<StackItem>,
 }
 
 /// Технология в группе.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct StackItem {
     pub text: String,
     pub emphasis: bool,
 }
 
 /// Место работы в том виде, в котором оно читается.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct RoleRow {
     /// «май 2024 — сейчас».
     pub period: String,
@@ -64,7 +67,7 @@ pub struct RoleRow {
 }
 
 /// Проект: имя, ссылка, одна строка о смысле, стек строкой.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ProjectRow {
     pub name: String,
     pub href: String,
@@ -73,7 +76,7 @@ pub struct ProjectRow {
 }
 
 /// Контакт или файл резюме.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct LinkRow {
     pub label: String,
     pub href: String,

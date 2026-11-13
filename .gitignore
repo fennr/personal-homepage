@@ -8,3 +8,6 @@ package-lock.json
 # Локальные секреты и артефакты
 .env
 /dist
+
+# Временный файл `just resume`: данные и PDF лежат в git
+resume/.data.json

@@ -5,6 +5,8 @@
 //! 2026 — это 99 месяцев, а не 98: ноябрь уже идёт. По тому же правилу
 //! считаются отрезки полосы, иначе она теряла бы месяц на каждой границе.
 
+use serde::Serialize;
+
 use super::date::YearMonth;
 use super::model::Role;
 
@@ -47,7 +49,7 @@ impl Tenure {
 }
 
 /// Отрезок полосы карьеры: одна компания и её длина в месяцах.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Segment {
     /// Имя на полосе: то же, что `brand` места работы.
     pub label: String,
@@ -59,7 +61,7 @@ pub struct Segment {
 }
 
 /// Год на оси под полосой: где ставить подпись.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct YearTick {
     pub year: u16,
     /// Положение в процентах, уже отформатированное для CSS.
@@ -67,7 +69,7 @@ pub struct YearTick {
 }
 
 /// Полоса карьеры: отрезки и ось лет.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Timeline {
     pub segments: Vec<Segment>,
     pub ticks: Vec<YearTick>,

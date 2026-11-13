@@ -17,7 +17,7 @@
         {% endmatch %}
         {% match page.resume %}
           {% when Some with (resume) %}
-            <a class="alt" href="{{ resume.href }}">{{ resume.label }}</a>
+            <a class="btn btn-quiet" href="{{ resume.href }}">{{ resume.label }}</a>
           {% when None %}
         {% endmatch %}
       </div>
