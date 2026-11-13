@@ -350,6 +350,12 @@ footer {
   gap: 8px 26px;
 }
 
+.terminal-switch {
+  margin: 18px 0 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
 /* ---------- узкий экран ---------- */
 
 @media (max-width: 860px) {

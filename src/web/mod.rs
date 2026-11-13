@@ -6,13 +6,15 @@ pub mod view;
 use askama::Template;
 use axum::Router;
 use axum::body::Body;
-use axum::extract::State;
-use axum::http::{Response, StatusCode, header};
+use axum::extract::{Form, Query, State};
+use axum::http::{HeaderMap, HeaderName, Response, StatusCode, header};
 use axum::response::IntoResponse;
 use axum::routing::get;
+use serde::Deserialize;
 use tower_http::compression::CompressionLayer;
 
 use crate::content::{Site, YearMonth};
+use crate::terminal;
 use view::Page;
 
 /// Состояние приложения: проверенный контент и дата, от которой считается стаж.
@@ -29,6 +31,8 @@ pub struct AppState {
 pub fn app(site: &'static Site, today: YearMonth) -> Router {
     Router::new()
         .route("/", get(index))
+        .route("/terminal", get(terminal_page))
+        .route("/terminal/exec", get(terminal_get).post(terminal_post))
         .route("/healthz", get(health))
         .route("/static/{*path}", get(static_files::serve))
         .fallback(not_found)
@@ -42,10 +46,85 @@ struct IndexTemplate {
     page: Page,
 }
 
+#[derive(Template)]
+#[template(path = "terminal.html")]
+struct TerminalTemplate {
+    page: Page,
+    answer: terminal::Answer,
+}
+
+/// Фрагмент вывода для `hx-post` и подсказок.
+#[derive(Template)]
+#[template(path = "partials/answer.html")]
+struct AnswerTemplate {
+    answer: terminal::Answer,
+}
+
+/// Поле формы терминала.
+#[derive(Debug, Deserialize)]
+struct ExecForm {
+    command: String,
+}
+
+/// Команда из подсказки: подсказка — ссылка, а не форма.
+#[derive(Debug, Deserialize)]
+struct ExecQuery {
+    cmd: String,
+}
+
 async fn index(State(state): State<AppState>) -> Response<Body> {
-    let template = IndexTemplate {
+    render(IndexTemplate {
         page: Page::build(state.site, state.today),
-    };
+    })
+}
+
+async fn terminal_page(State(state): State<AppState>) -> Response<Body> {
+    render(TerminalTemplate {
+        page: Page::build(state.site, state.today),
+        answer: terminal::welcome(state.site),
+    })
+}
+
+async fn terminal_post(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Form(form): Form<ExecForm>,
+) -> Response<Body> {
+    terminal_respond(&form.command, &headers, state)
+}
+
+async fn terminal_get(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(query): Query<ExecQuery>,
+) -> Response<Body> {
+    terminal_respond(&query.cmd, &headers, state)
+}
+
+/// Ответ терминала: фрагмент для htmx и полная страница без JS.
+fn terminal_respond(raw: &str, headers: &HeaderMap, state: AppState) -> Response<Body> {
+    let answer = terminal::answer(raw, state.site);
+    if is_htmx(headers) {
+        render(AnswerTemplate { answer })
+    } else {
+        render(TerminalTemplate {
+            page: Page::build(state.site, state.today),
+            answer,
+        })
+    }
+}
+
+/// htmx помечает свои запросы заголовком: по нему выбирается фрагмент вместо
+/// целой страницы.
+fn is_htmx(headers: &HeaderMap) -> bool {
+    static HX_REQUEST: HeaderName = HeaderName::from_static("hx-request");
+    headers
+        .get(&HX_REQUEST)
+        .and_then(|value| value.to_str().ok())
+        == Some("true")
+}
+
+fn render<T: Template>(template: T) -> Response<Body> {
     match template.render() {
         Ok(html) => (
             [
