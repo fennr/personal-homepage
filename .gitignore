@@ -1,0 +1,10 @@
+# Сборка Rust
+/target
+
+# Node нужен только для commitlint
+node_modules
+package-lock.json
+
+# Локальные секреты и артефакты
+.env
+/dist

@@ -1,0 +1,10 @@
+{
+  "name": "personal-homepage",
+  "private": true,
+  "type": "module",
+  "description": "Проверка сообщений коммитов. Сам сайт собирается cargo, node нужен только для commitlint.",
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0"
+  }
+}

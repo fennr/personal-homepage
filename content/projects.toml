@@ -1,0 +1,40 @@
+# Проекты: то, что можно открыть и потрогать.
+#
+# `what` — одна строка о смысле, без продающего тона. Ссылка обязана быть
+# абсолютной: относительный путь здесь означает забытый адрес.
+
+[[project]]
+name = "periodparser"
+href = "https://pypi.org/project/periodparser/"
+what = "Разбор временных периодов на естественном русском: «с прошлого вторника до конца месяца»."
+tech = ["Python", "PyPI"]
+
+[[project]]
+name = "universal-layout"
+href = "https://github.com/braindefender/universal-layout"
+what = "Раскладка RU/EN с единым вводом спецсимволов для обычных и сплит-клавиатур. Контрибьютор."
+tech = ["Karabiner", "QMK"]
+
+[[project]]
+name = "litres_download"
+href = "https://github.com/fennr/litres_download"
+what = "Выгрузка купленных книг с litres.ru в файлы, пригодные для читалки."
+tech = ["Python"]
+
+[[project]]
+name = "zipper"
+href = "https://github.com/fennr/zipper"
+what = "Упаковка деревьев git-репозиториев в архив с учётом правил .gitignore."
+tech = ["Rust", "CLI"]
+
+[[project]]
+name = "captcha-recognizer"
+href = "https://github.com/fennr/captcha-recognizer"
+what = "Распознавание капчи без внешних сервисов: модель работает локально."
+tech = ["TypeScript"]
+
+[[project]]
+name = "credinform_cli"
+href = "https://github.com/fennr/credinform_cli"
+what = "Пакетные запросы к credinform.ru из консоли, с ретраями и выгрузкой в файлы."
+tech = ["Rust", "CLI"]

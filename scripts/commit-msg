@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# Хук commit-msg: проверяет сообщение через commitlint.
+#
+# Устанавливается `just hooks`. Если node_modules нет, хук пропускает проверку
+# с предупреждением: коммит важнее локальной настройки, а CI его не проверяет.
+set -eu
+
+if [ ! -d node_modules ]; then
+  echo "commit-msg: пропущено, нет node_modules (just hooks)" >&2
+  exit 0
+fi
+
+exec npx --no-install commitlint --edit "$1"

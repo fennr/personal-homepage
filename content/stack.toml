@@ -1,0 +1,30 @@
+# Стек: группы по назначению, а не по «основное/дополнительное» —
+# для читателя это деление ничего не значит.
+#
+# `emphasis` выделяет в группе то, чем работаю каждый день. Каждое имя
+# обязано встречаться в `items` этой же группы.
+
+[[group]]
+title = "Языки"
+items = ["Python", "Go", "Rust"]
+emphasis = ["Python", "Go", "Rust"]
+
+[[group]]
+title = "Сервисы и шины"
+items = ["FastAPI", "FastStream", "aiohttp", "Axum", "Kafka", "RabbitMQ", "NATS", "WebSockets"]
+
+[[group]]
+title = "Хранилища"
+items = ["PostgreSQL", "MSSQL", "Redis", "MongoDB", "SQLite"]
+
+[[group]]
+title = "Инфраструктура"
+items = ["Docker", "Kubernetes", "Ansible", "GitLab CI/CD", "Linux"]
+
+[[group]]
+title = "Rust и расширения"
+items = ["PyO3", "Loco", "Tauri 2"]
+
+[[group]]
+title = "Аналитика"
+items = ["Apache Airflow", "pandas", "LangChain"]

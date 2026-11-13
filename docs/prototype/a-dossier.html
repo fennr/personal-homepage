@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<!--
+  ЧЕРНОВИК. Вариант A: «проектная документация».
+  Выбросить после выбора направления. Не production-код:
+  нет роутинга, нет терминального режима, шрифты лежат рядом локально.
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Черновик A — Виктор Меркурьев</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  :root {
+    --paper: #F1F2EE;
+    --paper-2: #DFE1DA;
+    --ink: #16191B;
+    --ink-2: #4E585C;
+    --line: #C6C9C2;
+    --accent: #1C4E80;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 16.5px/1.62 "IBM Plex Sans", system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 64px 44px 96px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: #9AA09B;
+  }
+  a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+  /* ---------- шапка ---------- */
+
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 0 56px;
+    align-items: start;
+  }
+
+  h1 {
+    font: 600 54px/1.02 "IBM Plex Sans Condensed", sans-serif;
+    letter-spacing: -0.015em;
+    margin: 0 0 14px;
+  }
+
+  .role {
+    margin: 0;
+    font-size: 17px;
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-top: 28px;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 11px 20px 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 2px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .btn:hover { background: var(--accent); color: #fff; }
+
+  .actions .alt { font-size: 15px; }
+
+  .meta { margin: 6px 0 0; }
+  .meta div { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; }
+  .meta dt {
+    font: 500 12.5px/1.5 "IBM Plex Sans Condensed", sans-serif;
+    letter-spacing: 0.02em;
+    color: var(--ink-2);
+  }
+  .meta dd { margin: 0; font-size: 14.5px; text-align: right; }
+
+  /* ---------- линия карьеры ---------- */
+
+  .career { margin-top: 64px; }
+
+  .bar { display: flex; height: 54px; }
+
+  .seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    background: var(--paper-2);
+    color: #3A4245;
+    font: 600 12.5px/1 "IBM Plex Sans Condensed", sans-serif;
+    letter-spacing: 0.03em;
+    border-right: 3px solid var(--paper);
+  }
+  .seg:last-child { border-right: 0; }
+
+  .seg.now { background: var(--accent); color: #F4F6F3; }
+
+  .axis { position: relative; height: 24px; margin-top: 8px; }
+  .axis span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font: 500 12px/1 "IBM Plex Sans Condensed", sans-serif;
+    color: var(--ink-2);
+    letter-spacing: 0.01em;
+  }
+  .axis span::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -9px;
+    width: 1px;
+    height: 6px;
+    background: var(--line);
+  }
+  .axis span:last-child { transform: translateX(-100%); }
+
+  .caption {
+    margin: 10px 0 0;
+    font-size: 13.5px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- разделы ---------- */
+
+  section {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 0 40px;
+    border-top: 1px solid var(--line);
+    padding-top: 26px;
+    margin-top: 56px;
+  }
+
+  h2 {
+    font: 600 21px/1.15 "IBM Plex Sans Condensed", sans-serif;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+
+  .body { max-width: 64ch; }
+  .body p { margin: 0 0 14px; }
+  .body p:last-child { margin-bottom: 0; }
+
+  /* стек */
+
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: baseline; padding: 9px 0; }
+  tr + tr th, tr + tr td { border-top: 1px solid #D8DAD3; }
+  th {
+    width: 148px;
+    font: 500 13px/1.5 "IBM Plex Sans Condensed", sans-serif;
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+  }
+  td { font-size: 15.5px; }
+  td b { font-weight: 500; }
+
+  /* опыт */
+
+  .job { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 0 24px; }
+  .job + .job { margin-top: 26px; padding-top: 24px; border-top: 1px solid #D8DAD3; }
+
+  .dates {
+    font: 500 12.5px/1.55 "IBM Plex Sans Condensed", sans-serif;
+    color: var(--ink-2);
+    letter-spacing: 0.01em;
+  }
+
+  .job h3 {
+    font: 600 17.5px/1.35 "IBM Plex Sans", sans-serif;
+    margin: 0 0 2px;
+  }
+  .job .where { margin: 0 0 10px; font-size: 14.5px; color: var(--ink-2); }
+  .job ul { margin: 0; padding-left: 18px; }
+  .job li { margin-bottom: 6px; font-size: 15.5px; }
+  .job li:last-child { margin-bottom: 0; }
+
+  /* проекты */
+
+  .projects { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; }
+
+  .project h3 {
+    font: 600 15.5px/1.35 "IBM Plex Sans", sans-serif;
+    margin: 0 0 3px;
+  }
+  .project .what { margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.5; }
+  .project .tech {
+    margin: 6px 0 0;
+    font: 500 12.5px/1.4 "IBM Plex Sans Condensed", sans-serif;
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+  }
+
+  .more { margin: 26px 0 0; font-size: 15px; }
+
+  /* подвал */
+
+  footer {
+    border-top: 1px solid var(--line);
+    margin-top: 64px;
+    padding-top: 26px;
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 0 40px;
+    font-size: 15px;
+  }
+  .contacts { display: flex; flex-wrap: wrap; gap: 8px 26px; }
+  .terminal { margin-top: 20px; font-size: 14px; color: var(--ink-2); }
+
+  /* служебная панель черновика */
+
+  .draftbar {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    background: rgba(22, 25, 27, 0.92);
+    color: #F1F2EE;
+    font: 500 12.5px/1 "IBM Plex Sans Condensed", sans-serif;
+    letter-spacing: 0.02em;
+    padding: 9px 16px;
+    border-radius: 3px;
+    z-index: 10;
+  }
+  .draftbar a { color: #F1F2EE; }
+  .draftbar span { opacity: 0.6; }
+
+  @media (max-width: 860px) {
+    .wrap { padding: 40px 22px 80px; }
+    header, section, footer { grid-template-columns: minmax(0, 1fr); }
+    header { gap: 28px; }
+    .meta dd { text-align: left; }
+    .meta div { justify-content: flex-start; gap: 12px; }
+    section { gap: 18px; }
+    h1 { font-size: 34px; }
+    .projects { grid-template-columns: 1fr; }
+    .job { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Виктор Меркурьев</h1>
+      <p class="role">Бэкенд-разработчик и архитектор. Проектирую интеграции между системами, которые уже есть, и сервисами, которые ещё нужно написать.</p>
+      <div class="actions">
+        <a class="btn" href="mailto:fenrir1121@gmail.com">Написать</a>
+        <a class="alt" href="#">Резюме, PDF</a>
+      </div>
+    </div>
+
+    <dl class="meta">
+      <div><dt>Место</dt><dd>Пермь, удалённо</dd></div>
+      <div><dt>Опыт</dt><dd>8 лет 3 месяца</dd></div>
+      <div><dt>Сейчас</dt><dd>Уралхим, архитектор</dd></div>
+      <div><dt>Код</dt><dd><a href="https://github.com/fennr">github.com/fennr</a></dd></div>
+    </dl>
+  </header>
+
+  <div class="career">
+    <div class="bar">
+      <div class="seg" style="flex:16">БКС</div>
+      <div class="seg" style="flex:34">Сапран</div>
+      <div class="seg" style="flex:8">Promobot</div>
+      <div class="seg" style="flex:11">Ujin</div>
+      <div class="seg now" style="flex:31">Уралхим</div>
+    </div>
+    <div class="axis">
+      <span style="left:4%">2019</span>
+      <span style="left:16%">2020</span>
+      <span style="left:28%">2021</span>
+      <span style="left:40%">2022</span>
+      <span style="left:52%">2023</span>
+      <span style="left:64%">2024</span>
+      <span style="left:76%">2025</span>
+      <span style="left:88%">2026</span>
+    </div>
+    <p class="caption">Восемь лет: от ABAP в SAP-интеграторе до архитектуры системы скоринга.</p>
+  </div>
+
+  <section>
+    <h2>О себе</h2>
+    <div class="body">
+      <p>Восемь лет в бэкенде, из них два с половиной — архитектура. Последние два года отвечаю за систему скоринга контрагентов в Уралхиме: адаптеры к внешним источникам данных, обмен с внутренней 1С, реестр архитектурных решений и код-ревью.</p>
+      <p>Пишу на Python, Go и Rust — чаще всего там, где нужно свести вместе чужие системы: чужой протокол, чужая схема данных, чужое ограничение по нагрузке. В командах ввожу то, без чего потом больно: тесты на новую функциональность, обязательный код-ревью, прозрачный релизный процесс.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Стек</h2>
+    <div class="body">
+      <table>
+        <tr>
+          <th>Языки</th>
+          <td><b>Python</b>, <b>Go</b>, <b>Rust</b></td>
+        </tr>
+        <tr>
+          <th>Сервисы и шины</th>
+          <td>FastAPI, FastStream, aiohttp, Axum, Kafka, RabbitMQ, NATS, WebSockets</td>
+        </tr>
+        <tr>
+          <th>Хранилища</th>
+          <td>PostgreSQL, MSSQL, Redis, MongoDB, SQLite</td>
+        </tr>
+        <tr>
+          <th>Инфраструктура</th>
+          <td>Docker, Kubernetes, Ansible, GitLab CI/CD, Linux</td>
+        </tr>
+        <tr>
+          <th>Rust и расширения</th>
+          <td>PyO3, Loco, Tauri 2 — микросервисы, CLI, десктоп</td>
+        </tr>
+        <tr>
+          <th>Аналитика</th>
+          <td>Apache Airflow, pandas, LangChain</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Опыт</h2>
+    <div class="body">
+
+      <div class="job">
+        <div class="dates">май 2024 — сейчас</div>
+        <div>
+          <h3>Архитектор</h3>
+          <p class="where">Уралхим, Пермь</p>
+          <ul>
+            <li>Система скоринга контрагентов: слой адаптеров к внешним источникам, унификация работы с Kafka, кэшем и ошибками, расчёт стоп-факторов.</li>
+            <li>Интеграция с внутренней 1С на Go и MSSQL; рефакторинг ядра на Go и PostgreSQL ради мониторинга и пользовательских сценариев.</li>
+            <li>Реестр архитектурных решений, постановка задач команде, код-ревью, система мониторинга.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job">
+        <div class="dates">июнь 2023 — апрель 2024</div>
+        <div>
+          <h3>Python Backend Developer</h3>
+          <p class="where">Юникорн (Ujin), Пермь</p>
+          <ul>
+            <li>Рефакторинг архитектуры Ujin Assistant и унификация протоколов между микросервисами.</li>
+            <li>Внедрил semver, commitlint, pre-commit, ruff и обязательное покрытие тестами: релиз сократился с 1–2 часов до 5 минут.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job">
+        <div class="dates">ноябрь 2022 — июнь 2023</div>
+        <div>
+          <h3>Лингвист-разработчик</h3>
+          <p class="where">Promobot, Пермь</p>
+          <ul>
+            <li>Платформа Nested-Chat: обратная совместимость между версиями, автоматизация деплоя, покрытие тестами с 25% до 85%.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job">
+        <div class="dates">январь 2020 — октябрь 2022</div>
+        <div>
+          <h3>Инженер-разработчик</h3>
+          <p class="where">Сапран, Пермь — ABAP для Лукойла (S/4 HANA), Алросы, КАМАЗа и Лукойл-технологий</p>
+        </div>
+      </div>
+
+      <div class="job">
+        <div class="dates">сентябрь 2018 — декабрь 2019</div>
+        <div>
+          <h3>Разработчик</h3>
+          <p class="where">Бизнес Компьютер Софт, Пермь — ABAP, смарт-формы для KNAUF и Лукойл-технологий</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Проекты</h2>
+    <div class="body">
+      <div class="projects">
+
+        <div class="project">
+          <h3><a href="https://pypi.org/project/periodparser/">periodparser</a></h3>
+          <p class="what">Разбор временных периодов на естественном русском: «с прошлого вторника до конца месяца».</p>
+          <p class="tech">Python, PyPI</p>
+        </div>
+
+        <div class="project">
+          <h3><a href="https://github.com/braindefender/universal-layout">universal-layout</a></h3>
+          <p class="what">Раскладка RU/EN с единым вводом спецсимволов для обычных и сплит-клавиатур. Контрибьютор.</p>
+          <p class="tech">Karabiner, QMK</p>
+        </div>
+
+        <div class="project">
+          <h3><a href="https://github.com/fennr/litres_download">litres_download</a></h3>
+          <p class="what">Выгрузка купленных книг с litres.ru в файлы, пригодные для читалки.</p>
+          <p class="tech">Python</p>
+        </div>
+
+        <div class="project">
+          <h3><a href="https://github.com/fennr/zipper">zipper</a></h3>
+          <p class="what">Упаковка деревьев git-репозиториев в архив с учётом правил .gitignore.</p>
+          <p class="tech">Rust, CLI</p>
+        </div>
+
+        <div class="project">
+          <h3><a href="https://github.com/fennr/captcha-recognizer">captcha-recognizer</a></h3>
+          <p class="what">Распознавание капчи без внешних сервисов: модель работает локально.</p>
+          <p class="tech">TypeScript</p>
+        </div>
+
+        <div class="project">
+          <h3><a href="https://github.com/fennr/credinform_cli">credinform_cli</a></h3>
+          <p class="what">Пакетные запросы к credinform.ru из консоли, с ретраями и выгрузкой в файлы.</p>
+          <p class="tech">Rust, CLI</p>
+        </div>
+
+      </div>
+      <p class="more">Остальное — на <a href="https://github.com/fennr">github.com/fennr</a>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <h2>Контакты</h2>
+    <div>
+      <div class="contacts">
+        <a href="mailto:fenrir1121@gmail.com">fenrir1121@gmail.com</a>
+        <a href="https://github.com/fennr">github.com/fennr</a>
+        <a href="https://www.linkedin.com/in/fenrir1121/">linkedin</a>
+        <a href="https://career.habr.com/fennr">Хабр Карьера</a>
+      </div>
+      <p class="terminal">Есть терминальная версия: <a href="b-schematic.html">открыть терминал</a>.</p>
+    </div>
+  </footer>
+
+</div>
+
+<div class="draftbar">
+  <span>черновик</span>
+  <strong>A — проектная документация</strong>
+  <a href="b-schematic.html">вариант B</a>
+</div>
+
+</body>
+</html>
