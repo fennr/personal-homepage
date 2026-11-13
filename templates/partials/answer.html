@@ -1,11 +1,11 @@
 {# Вывод терминала. Используется и в странице, и как фрагмент для htmx. #}
 {% for line in answer.lines %}
-<div class="line {{ line.class }}">{% if line.prompt %}<span class="prompt">visitor@fennr:~$</span> {% endif %}{{ line.text }}</div>
+<div class="line {{ line.class }}">{% if line.prompt %}<span class="prompt" aria-hidden="true">visitor@fennr:~$</span> {% endif %}{{ line.text }}</div>
 {% endfor %}
 {% if answer.clear %}
 {# clear: очищаем контейнер вывода вместо того, чтобы дописывать строку. #}
 <div id="out" hx-swap-oob="innerHTML"></div>
 {% endif %}
 {% if !answer.hints.is_empty() %}
-<div class="hints">дальше: {% for hint in answer.hints %}<a href="/terminal/exec?cmd={{ hint }}" hx-get="/terminal/exec?cmd={{ hint }}" hx-target="#out" hx-swap="beforeend">{{ hint }}</a>{% if !loop.last %} · {% endif %}{% endfor %}</div>
+<div class="hints">дальше: {% for hint in answer.hints %}<a href="/terminal/exec?cmd={{ hint }}" hx-get="/terminal/exec?cmd={{ hint }}" hx-target="#out" hx-swap="beforeend">{{ hint }}</a>{% if !loop.last %}<span aria-hidden="true"> · </span>{% endif %}{% endfor %}</div>
 {% endif %}

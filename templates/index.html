@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="wrap">
+<a class="skip-link" href="#main">К содержимому</a>
+<main id="main" class="wrap">
 
   <header>
     <div>
@@ -37,10 +38,11 @@
     </dl>
   </header>
 
-  <div class="career">
+  {# Полоса карьеры — картинка с подписью: те же данные читаются в разделе «Опыт». #}
+  <div class="career" role="img" aria-label="{{ page.career_label }}">
     <div class="bar">
       {% for segment in page.timeline.segments %}
-      <div class="seg{% if segment.current %} now{% endif %}" style="flex: {{ segment.months }}">{{ segment.company }}</div>
+      <div class="seg{% if segment.current %} now{% endif %}{% if segment.narrow %} narrow{% endif %}" style="flex: {{ segment.months }}">{{ segment.company }}</div>
       {% endfor %}
     </div>
     <div class="axis">
@@ -63,9 +65,10 @@
     <h2>Стек</h2>
     <div class="body">
       <table>
+        <caption class="visually-hidden">Стек по группам</caption>
         {% for row in page.stack %}
         <tr>
-          <th>{{ row.title }}</th>
+          <th scope="row">{{ row.title }}</th>
           <td>
             {% for item in row.items %}{% if item.emphasis %}<b>{{ item.text }}</b>{% else %}{{ item.text }}{% endif %}{% if !loop.last %}, {% endif %}{% endfor %}
           </td>
@@ -128,5 +131,5 @@
     </div>
   </footer>
 
-</div>
+</main>
 {% endblock %}

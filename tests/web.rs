@@ -24,6 +24,20 @@ struct Reply {
     body: String,
 }
 
+/// Только код ответа: тело может быть двоичным (например, PNG).
+async fn status(uri: &str) -> StatusCode {
+    app()
+        .oneshot(
+            Request::builder()
+                .uri(uri)
+                .body(Body::empty())
+                .expect("запрос"),
+        )
+        .await
+        .expect("ответ получен")
+        .status()
+}
+
 async fn get(uri: &str) -> Reply {
     request(Method::GET, uri, &[]).await
 }
@@ -72,9 +86,10 @@ async fn homepage_shows_the_profile_and_every_section() {
         "Опыт",
         "Проекты",
         "Контакты",
-        "8 лет 3 месяца",
+        "Стек по группам",
+        "8\u{a0}лет 3\u{a0}месяца",
         "Уралхим",
-        "май 2024 — сейчас",
+        "май\u{a0}2024\u{a0}— сейчас",
         "periodparser",
         "mailto:fenrir1121@gmail.com",
     ] {
@@ -102,6 +117,127 @@ async fn homepage_lists_every_role_and_project() {
         reply.body.matches("class=\"seg now\"").count(),
         1,
         "текущее место работы помечено один раз"
+    );
+}
+
+#[tokio::test]
+async fn homepage_has_a_skip_link_main_and_semantic_table() {
+    let reply = get("/").await;
+    assert!(
+        reply
+            .body
+            .contains("<a class=\"skip-link\" href=\"#main\">"),
+        "skip-link"
+    );
+    assert!(
+        reply.body.contains("<main id=\"main\""),
+        "main — цель skip-link"
+    );
+    assert!(
+        reply.body.contains("<caption class=\"visually-hidden\">"),
+        "подпись таблицы для скринридера"
+    );
+    assert!(
+        reply.body.contains("role=\"img\" aria-label=\"Карьера"),
+        "у полосы карьеры есть текстовая альтернатива"
+    );
+}
+
+#[tokio::test]
+async fn resume_link_is_dropped_when_the_file_is_missing() {
+    let reply = get("/").await;
+    assert!(
+        static_resume_absent(&reply.body),
+        "ссылки на несуществующий PDF быть не должно: {}",
+        reply.body.contains("Резюме")
+    );
+}
+
+/// `resume.pdf` в статике нет, пока резюме не собрано шаблоном.
+fn static_resume_absent(body: &str) -> bool {
+    !body.contains("Резюме, PDF") && !body.contains("/static/resume.pdf")
+}
+
+#[tokio::test]
+async fn open_graph_points_at_a_published_image() {
+    let reply = get("/").await;
+    assert!(
+        reply
+            .body
+            .contains("property=\"og:image\" content=\"https://fennr.ru/static/og.png\"")
+    );
+    assert!(
+        reply
+            .body
+            .contains("property=\"og:image:width\" content=\"1200\"")
+    );
+    assert!(
+        reply
+            .body
+            .contains("name=\"twitter:card\" content=\"summary_large_image\"")
+    );
+    assert!(
+        reply
+            .body
+            .contains("name=\"theme-color\" content=\"#F1F2EE\"")
+    );
+    assert!(
+        reply
+            .body
+            .contains("name=\"color-scheme\" content=\"light\"")
+    );
+    assert_eq!(status("/static/og.png").await, StatusCode::OK);
+}
+
+#[tokio::test]
+async fn terminal_metadata_is_its_own() {
+    let reply = get("/terminal").await;
+    assert!(
+        reply
+            .body
+            .contains("property=\"og:url\" content=\"https://fennr.ru/terminal\"")
+    );
+    assert!(
+        reply
+            .body
+            .contains("name=\"theme-color\" content=\"#14181B\"")
+    );
+    assert!(
+        reply
+            .body
+            .contains("name=\"color-scheme\" content=\"dark\"")
+    );
+}
+
+#[tokio::test]
+async fn robots_and_sitemap_are_served() {
+    let robots = get("/robots.txt").await;
+    assert_eq!(robots.status, StatusCode::OK);
+    assert!(header_of(&robots, header::CONTENT_TYPE).starts_with("text/plain"));
+    assert!(
+        robots
+            .body
+            .contains("Sitemap: https://fennr.ru/sitemap.xml")
+    );
+
+    let sitemap = get("/sitemap.xml").await;
+    assert_eq!(sitemap.status, StatusCode::OK);
+    assert!(header_of(&sitemap, header::CONTENT_TYPE).starts_with("application/xml"));
+    assert!(sitemap.body.contains("<loc>https://fennr.ru/</loc>"));
+    assert!(
+        sitemap
+            .body
+            .contains("<loc>https://fennr.ru/terminal</loc>")
+    );
+}
+
+#[tokio::test]
+async fn responses_carry_baseline_security_headers() {
+    let reply = get("/").await;
+    assert_eq!(header_of(&reply, header::X_CONTENT_TYPE_OPTIONS), "nosniff");
+    assert_eq!(
+        header_of(&reply, header::REFERRER_POLICY),
+        "strict-origin-when-cross-origin"
     );
 }
 
@@ -139,7 +275,10 @@ async fn stylesheet_is_served_with_cache_headers() {
         header_of(&reply, header::CONTENT_TYPE),
         "text/css; charset=utf-8"
     );
-    assert!(header_of(&reply, header::CACHE_CONTROL).contains("max-age"));
+    assert!(
+        header_of(&reply, header::CACHE_CONTROL).contains("must-revalidate"),
+        "стили перепроверяются: имён с хешем у нас нет"
+    );
     assert!(header_of(&reply, header::ETAG).starts_with('"'));
     assert!(reply.body.contains("--accent"), "отдан именно файл стилей");
 }

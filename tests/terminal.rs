@@ -81,6 +81,10 @@ async fn terminal_page_prompts_for_a_command() {
         "/static/htmx.min.js",
         "/static/terminal.css",
         "обычная версия",
+        "<h1 class=\"term-host\">",
+        "role=\"log\" aria-live=\"polite\"",
+        "hx-sync=\"this:drop\"",
+        "class=\"skip-link\"",
     ] {
         assert!(
             reply.body.contains(expected),

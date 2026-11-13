@@ -17,6 +17,9 @@ use crate::content::{Site, YearMonth};
 use crate::terminal;
 use view::Page;
 
+/// Адрес сайта: один домен, поэтому он задан здесь, а не в контенте.
+const SITE_URL: &str = "https://fennr.ru";
+
 /// Состояние приложения: проверенный контент и дата, от которой считается стаж.
 ///
 /// `today` приходит снаружи, а не берётся из часов внутри обработчика: иначе
@@ -33,6 +36,8 @@ pub fn app(site: &'static Site, today: YearMonth) -> Router {
         .route("/", get(index))
         .route("/terminal", get(terminal_page))
         .route("/terminal/exec", get(terminal_get).post(terminal_post))
+        .route("/robots.txt", get(robots))
+        .route("/sitemap.xml", get(sitemap))
         .route("/healthz", get(health))
         .route("/static/{*path}", get(static_files::serve))
         .fallback(not_found)
@@ -72,15 +77,20 @@ struct ExecQuery {
     cmd: String,
 }
 
+/// Собирает страницу и убирает ссылки на файлы, которых нет в образе.
+fn page(state: AppState) -> Page {
+    let mut page = Page::build(state.site, state.today);
+    page.resume = page.resume.filter(|resume| static_files::has(&resume.href));
+    page
+}
+
 async fn index(State(state): State<AppState>) -> Response<Body> {
-    render(IndexTemplate {
-        page: Page::build(state.site, state.today),
-    })
+    render(IndexTemplate { page: page(state) })
 }
 
 async fn terminal_page(State(state): State<AppState>) -> Response<Body> {
     render(TerminalTemplate {
-        page: Page::build(state.site, state.today),
+        page: page(state),
         answer: terminal::welcome(state.site),
     })
 }
@@ -108,7 +118,7 @@ fn terminal_respond(raw: &str, headers: &HeaderMap, state: AppState) -> Response
         render(AnswerTemplate { answer })
     } else {
         render(TerminalTemplate {
-            page: Page::build(state.site, state.today),
+            page: page(state),
             answer,
         })
     }
@@ -124,21 +134,49 @@ fn is_htmx(headers: &HeaderMap) -> bool {
         == Some("true")
 }
 
+async fn robots() -> Response<Body> {
+    text_response(
+        "text/plain; charset=utf-8",
+        format!("User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n"),
+    )
+}
+
+async fn sitemap() -> Response<Body> {
+    text_response(
+        "application/xml; charset=utf-8",
+        format!(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+             <urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n\
+             <url><loc>{SITE_URL}/</loc></url>\n\
+             <url><loc>{SITE_URL}/terminal</loc></url>\n\
+             </urlset>\n"
+        ),
+    )
+}
+
 fn render<T: Template>(template: T) -> Response<Body> {
     match template.render() {
-        Ok(html) => (
-            [
-                (header::CONTENT_TYPE, "text/html; charset=utf-8"),
-                (header::CACHE_CONTROL, "no-cache"),
-            ],
-            html,
-        )
-            .into_response(),
+        Ok(html) => text_response("text/html; charset=utf-8", html),
         Err(error) => {
             eprintln!("не удалось отрисовать страницу: {error}");
             (StatusCode::INTERNAL_SERVER_ERROR, "страница не собралась").into_response()
         }
     }
+}
+
+/// Общие заголовки для всего, что отдаёт сервис: тип не угадывается, адрес
+/// перехода не утекает на чужие домены.
+fn text_response(content_type: &'static str, body: String) -> Response<Body> {
+    (
+        [
+            (header::CONTENT_TYPE, content_type),
+            (header::CACHE_CONTROL, "no-cache"),
+            (header::X_CONTENT_TYPE_OPTIONS, "nosniff"),
+            (header::REFERRER_POLICY, "strict-origin-when-cross-origin"),
+        ],
+        body,
+    )
+        .into_response()
 }
 
 async fn health() -> &'static str {

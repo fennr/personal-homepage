@@ -5,7 +5,7 @@
 
 use crate::content::date::End;
 use crate::content::span::{Tenure, Timeline};
-use crate::content::{Profile, Site, YearMonth};
+use crate::content::{Profile, Role, Site, YearMonth};
 
 /// Всё, что нужно обычной версии страницы.
 #[derive(Debug)]
@@ -15,6 +15,8 @@ pub struct Page {
     pub summary: String,
     /// Стаж словами: «8 лет 2 месяца».
     pub tenure: String,
+    /// Подпись полосы карьеры для скринридера.
+    pub career_label: String,
     pub about: Vec<String>,
     pub facts: Vec<Fact>,
     pub timeline: Timeline,
@@ -120,6 +122,7 @@ impl Page {
             role: profile.role.clone(),
             summary: profile.summary.clone(),
             tenure: tenure_label(tenure),
+            career_label: career_label(&site.roles, today),
             about: profile.about.clone(),
             facts,
             timeline: Timeline::build(&site.roles, today),
@@ -156,9 +159,11 @@ fn stack_row(group: &crate::content::StackGroup) -> StackRow {
     }
 }
 
-fn role_row(role: &crate::content::Role) -> RoleRow {
+fn role_row(role: &Role) -> RoleRow {
     RoleRow {
-        period: format!("{} — {}", month_label(role.start), end_label(role.end)),
+        // Неразрывный пробел держит «—» на строке даты начала, а не в начале
+        // следующей: в колонке 118 px диапазон почти всегда не влезает целиком.
+        period: format!("{}\u{a0}— {}", month_label(role.start), end_label(role.end)),
         company: role.company.clone(),
         title: role.title.clone(),
         place: role.place.clone(),
@@ -207,7 +212,8 @@ pub fn month_label(month: YearMonth) -> String {
         "декабрь",
     ];
     let name = NAMES[usize::from(month.month() - 1)];
-    format!("{name} {}", month.year())
+    // Неразрывный пробел: «май» не должно остаться на строке без года.
+    format!("{name}\u{a0}{}", month.year())
 }
 
 /// Конец периода словами: дата или «сейчас».
@@ -235,6 +241,9 @@ pub fn tenure_label(tenure: Tenure) -> String {
 }
 
 /// Русское склонение по числу: 1 год, 2 года, 5 лет, 11 лет, 21 год.
+///
+/// Число и слово связываются неразрывным пробелом: «8 лет» не должно разорваться
+/// между цифрой и словом.
 fn plural(count: i32, one: &str, few: &str, many: &str) -> String {
     let last_two = count % 100;
     let last = count % 10;
@@ -247,7 +256,29 @@ fn plural(count: i32, one: &str, few: &str, many: &str) -> String {
     } else {
         many
     };
-    format!("{count} {word}")
+    format!("{count}\u{a0}{word}")
+}
+
+/// Подпись полосы карьеры: полоса — картинка, поэтому у неё есть описание, а
+/// даты и подробности остаются в разделе «Опыт».
+fn career_label(roles: &[Role], today: YearMonth) -> String {
+    let Some(oldest) = roles.last() else {
+        return "Карьера".to_owned();
+    };
+    let companies = roles
+        .iter()
+        .rev()
+        .map(|role| role.company.as_str())
+        .collect::<Vec<_>>()
+        .join(", ");
+    let years = format!("{}–{}", oldest.start.year(), today.year());
+    match roles.first().filter(|role| role.end.is_now()) {
+        Some(current) => format!(
+            "Карьера, {years}: {companies}. Сейчас — {}.",
+            current.company
+        ),
+        None => format!("Карьера, {years}: {companies}."),
+    }
 }
 
 #[cfg(test)]
@@ -261,22 +292,22 @@ mod tests {
 
     #[test]
     fn months_are_written_lowercase_with_the_year() {
-        assert_eq!(month_label(month("2024-05")), "май 2024");
-        assert_eq!(month_label(month("2022-01")), "январь 2022");
+        assert_eq!(month_label(month("2024-05")), "май\u{a0}2024");
+        assert_eq!(month_label(month("2022-01")), "январь\u{a0}2022");
         assert_eq!(end_label(End::Now), "сейчас");
     }
 
     #[test]
     fn tenure_declines_in_russian() {
         let cases = [
-            ("2018-09", "2026-11", "8 лет 3 месяца"),
-            ("2025-12", "2026-11", "1 год"),
-            ("2026-10", "2026-11", "2 месяца"),
-            ("2026-09", "2026-11", "3 месяца"),
-            ("2026-02", "2026-11", "10 месяцев"),
-            ("2026-01", "2026-11", "11 месяцев"),
-            ("2015-12", "2026-11", "11 лет"),
-            ("2020-02", "2026-11", "6 лет 10 месяцев"),
+            ("2018-09", "2026-11", "8\u{a0}лет 3\u{a0}месяца"),
+            ("2025-12", "2026-11", "1\u{a0}год"),
+            ("2026-10", "2026-11", "2\u{a0}месяца"),
+            ("2026-09", "2026-11", "3\u{a0}месяца"),
+            ("2026-02", "2026-11", "10\u{a0}месяцев"),
+            ("2026-01", "2026-11", "11\u{a0}месяцев"),
+            ("2015-12", "2026-11", "11\u{a0}лет"),
+            ("2020-02", "2026-11", "6\u{a0}лет 10\u{a0}месяцев"),
         ];
         for (start, today, expected) in cases {
             let label = tenure_label(Tenure::between(month(start), month(today)));
@@ -293,14 +324,39 @@ mod tests {
         let page = Page::build(site, month("2026-11"));
         assert_eq!(page.name, "Виктор Меркурьев");
         assert_eq!(page.roles.len(), site.roles.len());
-        assert_eq!(page.roles[0].period, "май 2024 — сейчас");
-        assert_eq!(page.roles[4].period, "сентябрь 2018 — декабрь 2019");
-        assert_eq!(page.tenure, "8 лет 3 месяца");
+        assert_eq!(page.roles[0].period, "май\u{a0}2024\u{a0}— сейчас");
+        assert_eq!(
+            page.roles[4].period,
+            "сентябрь\u{a0}2018\u{a0}— декабрь\u{a0}2019"
+        );
+        assert_eq!(page.tenure, "8\u{a0}лет 3\u{a0}месяца");
         assert_eq!(page.email.as_deref(), Some("fenrir1121@gmail.com"));
         assert!(
             page.facts.iter().any(|fact| fact.label == "Код"
                 && fact.href.as_deref() == Some("https://github.com/fennr")),
             "ссылка на код без схемы в тексте"
+        );
+    }
+
+    #[test]
+    fn career_label_describes_the_bar_for_screen_readers() {
+        let site = Site::embedded().expect("контент валиден");
+        let page = Page::build(site, month("2026-11"));
+        assert_eq!(
+            page.career_label,
+            "Карьера, 2018–2026: Бизнес Компьютер Софт, Сапран, Promobot, Юникорн (Ujin), Уралхим. Сейчас — Уралхим."
+        );
+    }
+
+    #[test]
+    fn numbers_are_glued_to_their_words() {
+        // Неразрывный пробел: «8 лет» и «май 2024» не должны разрываться по словам.
+        let site = Site::embedded().expect("контент валиден");
+        let page = Page::build(site, month("2026-11"));
+        assert!(!page.tenure.contains(" лет"), "число и слово склеены");
+        assert!(
+            !page.roles[0].period.contains("май "),
+            "месяц и год склеены"
         );
     }
 

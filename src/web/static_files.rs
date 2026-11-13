@@ -1,4 +1,4 @@
-//! Отдача вкомпилированной статики: CSS, шрифты, htmx.
+//! Отдача вкомпилированной статики: CSS, шрифты, картинки, htmx.
 //!
 //! Файлы лежат в бинаре, поэтому «что в репозитории» и «что в образе» не могут
 //! разойтись. `ETag` считается один раз на старте из байтов файла, браузер
@@ -17,7 +17,10 @@ use include_dir::{Dir, include_dir};
 /// Статика образа. Каталог читается на этапе компиляции.
 static ASSETS: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/static");
 
-const CACHE_CONTROL: &str = "public, max-age=86400";
+/// Шрифты и иконки меняются только при замене файла, поэтому их можно держать
+/// в кэше неделю. У стилей имён с хешем нет: правка должна доезжать быстро.
+const CACHE_LONG: &str = "public, max-age=604800";
+const CACHE_SHORT: &str = "public, max-age=300, must-revalidate";
 
 /// Отдаёт файл по пути внутри `static/`.
 pub async fn serve(Path(path): Path<String>, headers: HeaderMap) -> Response<Body> {
@@ -30,7 +33,8 @@ pub async fn serve(Path(path): Path<String>, headers: HeaderMap) -> Response<Bod
         return Response::builder()
             .status(StatusCode::NOT_MODIFIED)
             .header(header::ETAG, etag)
-            .header(header::CACHE_CONTROL, CACHE_CONTROL)
+            .header(header::CACHE_CONTROL, cache_control(&path))
+            .header(header::X_CONTENT_TYPE_OPTIONS, "nosniff")
             .body(Body::empty())
             .expect("ответ 304 собирается");
     }
@@ -39,9 +43,18 @@ pub async fn serve(Path(path): Path<String>, headers: HeaderMap) -> Response<Bod
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, content_type(&path))
         .header(header::ETAG, etag)
-        .header(header::CACHE_CONTROL, CACHE_CONTROL)
+        .header(header::CACHE_CONTROL, cache_control(&path))
+        .header(header::X_CONTENT_TYPE_OPTIONS, "nosniff")
         .body(Body::from(file.contents()))
         .expect("ответ 200 собирается")
+}
+
+/// Есть ли файл в статике. Нужно, чтобы не отдавать ссылку на то, чего нет:
+/// битая кнопка хуже отсутствующей.
+pub fn has(href: &str) -> bool {
+    let path = href.trim_start_matches('/');
+    let path = path.strip_prefix("static/").unwrap_or(path);
+    ASSETS.get_file(path).is_some()
 }
 
 /// `ETag` файла: хеш не криптографический, он нужен только чтобы отличить
@@ -76,10 +89,17 @@ fn is_not_modified(headers: &HeaderMap, etag: &str) -> bool {
         })
 }
 
+fn cache_control(path: &str) -> &'static str {
+    match extension(path) {
+        "woff2" | "ico" | "png" | "svg" => CACHE_LONG,
+        _ => CACHE_SHORT,
+    }
+}
+
 /// Тип содержимого по расширению: список закрыт тем, что реально лежит в
 /// `static/`, а не полной таблицей MIME.
 fn content_type(path: &str) -> &'static str {
-    match path.rsplit('.').next().unwrap_or_default() {
+    match extension(path) {
         "css" => "text/css; charset=utf-8",
         "js" => "text/javascript; charset=utf-8",
         "woff2" => "font/woff2",
@@ -89,6 +109,10 @@ fn content_type(path: &str) -> &'static str {
         "pdf" => "application/pdf",
         _ => "application/octet-stream",
     }
+}
+
+fn extension(path: &str) -> &str {
+    path.rsplit('.').next().unwrap_or_default()
 }
 
 fn missing() -> Response<Body> {
@@ -105,7 +129,7 @@ mod tests {
 
     #[test]
     fn every_embedded_file_gets_an_etag() {
-        assert!(!ASSETS.files().next().is_none(), "статика вкомпилирована");
+        assert!(ASSETS.files().next().is_some(), "статика вкомпилирована");
         for file in ASSETS.files() {
             let path = file.path().to_str().expect("utf-8 путь");
             assert!(etag_of(path).is_some(), "нет ETag для {path}");
@@ -127,6 +151,21 @@ mod tests {
             content_type("htmx.min.js"),
             "text/javascript; charset=utf-8"
         );
-        assert_eq!(content_type("resume.pdf"), "application/pdf");
+        assert_eq!(content_type("og.png"), "image/png");
+    }
+
+    #[test]
+    fn styles_revalidate_and_fonts_cache_long() {
+        assert!(cache_control("app.css").contains("must-revalidate"));
+        assert!(cache_control("terminal.css").contains("must-revalidate"));
+        assert!(cache_control("fonts/f0.woff2").contains("604800"));
+        assert!(cache_control("og.png").contains("604800"));
+    }
+
+    #[test]
+    fn has_accepts_page_and_static_paths() {
+        assert!(has("/static/app.css"));
+        assert!(has("app.css"));
+        assert!(!has("/static/resume.pdf"));
     }
 }

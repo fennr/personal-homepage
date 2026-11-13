@@ -4,17 +4,20 @@
 {% block og_title %}Терминал — {{ page.name }}{% endblock %}
 {% block og_url %}https://fennr.ru/terminal{% endblock %}
 {% block canonical %}https://fennr.ru/terminal{% endblock %}
+{% block theme_color %}#14181B{% endblock %}
+{% block color_scheme %}dark{% endblock %}
 {% block body_class %}term-body{% endblock %}
 {% block styles %}<link rel="stylesheet" href="/static/terminal.css">{% endblock %}
 
 {% block content %}
 <main class="term">
+  <a class="skip-link" href="#out">К выводу</a>
   <div class="term-head">
-    <span class="term-host">visitor@fennr</span>
+    <h1 class="term-host">visitor@fennr</h1>
     <a class="term-switch" href="/">обычная версия</a>
   </div>
 
-  <div id="out" class="term-out">
+  <div id="out" class="term-out" role="log" aria-live="polite" aria-label="Вывод терминала">
     {% include "partials/answer.html" %}
   </div>
 
@@ -24,11 +27,12 @@
         hx-post="/terminal/exec"
         hx-target="#out"
         hx-swap="beforeend"
+        hx-sync="this:drop"
         hx-on::after-request="if (event.detail.successful) { this.reset(); this.command.focus(); const out = document.getElementById('out'); out.scrollTop = out.scrollHeight; }"
         autocomplete="off">
     <label class="prompt" for="command">visitor@fennr:~$</label>
     <input id="command" name="command" type="text" autocomplete="off" autocapitalize="off"
-           spellcheck="false" autofocus aria-label="Команда">
+           spellcheck="false" enterkeyhint="send" autofocus aria-label="Команда">
   </form>
 </main>
 {% endblock %}
