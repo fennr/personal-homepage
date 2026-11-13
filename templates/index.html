@@ -2,7 +2,7 @@
 
 {% block content %}
 <a class="skip-link" href="#main">К содержимому</a>
-<main id="main" class="wrap">
+<div class="wrap">
 
   <header>
     <div>
@@ -52,84 +52,89 @@
     </div>
   </div>
 
-  <section>
-    <h2>О себе</h2>
-    <div class="body">
-      {% for paragraph in page.about %}
-      <p>{{ paragraph }}</p>
-      {% endfor %}
-    </div>
-  </section>
+  {# tabindex="-1": переход по skip-ссылке должен переносить фокус, иначе
+     следующий Tab начинается с начала страницы и пропуск не работает. #}
+  <main id="main" tabindex="-1">
 
-  <section>
-    <h2>Стек</h2>
-    <div class="body">
-      <table>
-        <caption class="visually-hidden">Стек по группам</caption>
-        {% for row in page.stack %}
-        <tr>
-          <th scope="row">{{ row.title }}</th>
-          <td>
-            {% for item in row.items %}{% if item.emphasis %}<b>{{ item.text }}</b>{% else %}{{ item.text }}{% endif %}{% if !loop.last %}, {% endif %}{% endfor %}
-          </td>
-        </tr>
+    <section>
+      <h2>О себе</h2>
+      <div class="body">
+        {% for paragraph in page.about %}
+        <p>{{ paragraph }}</p>
         {% endfor %}
-      </table>
-    </div>
-  </section>
-
-  <section>
-    <h2>Опыт</h2>
-    <div class="body">
-      {% for role in page.roles %}
-      <div class="job">
-        <div class="dates">{{ role.period }}</div>
-        <div>
-          <h3>{{ role.title }}</h3>
-          <p class="where">{{ role.company }}, {{ role.place }}</p>
-          {% match role.summary %}
-            {% when Some with (summary) %}<p class="job-summary">{{ summary }}</p>
-            {% when None %}
-          {% endmatch %}
-          {% if !role.bullets.is_empty() %}
-          <ul>
-            {% for bullet in role.bullets %}
-            <li>{{ bullet }}</li>
-            {% endfor %}
-          </ul>
-          {% endif %}
-        </div>
       </div>
-      {% endfor %}
-    </div>
-  </section>
+    </section>
 
-  <section>
-    <h2>Проекты</h2>
-    <div class="body">
-      <div class="projects">
-        {% for project in page.projects %}
-        <div class="project">
-          <h3><a href="{{ project.href }}">{{ project.name }}</a></h3>
-          <p class="what">{{ project.what }}</p>
-          <p class="tech">{{ project.tech }}</p>
+    <section>
+      <h2>Стек</h2>
+      <div class="body">
+        <table>
+          <caption class="visually-hidden">Стек по группам</caption>
+          {% for row in page.stack %}
+          <tr>
+            <th scope="row">{{ row.title }}</th>
+            <td>
+              {% for item in row.items %}{% if item.emphasis %}<b>{{ item.text }}</b>{% else %}{{ item.text }}{% endif %}{% if !loop.last %}, {% endif %}{% endfor %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Опыт</h2>
+      <div class="body">
+        {% for role in page.roles %}
+        <div class="job">
+          <div class="dates">{{ role.period }}</div>
+          <div>
+            <h3>{{ role.title }}</h3>
+            <p class="where">{{ role.company }}, {{ role.place }}</p>
+            {% match role.summary %}
+              {% when Some with (summary) %}<p class="job-summary">{{ summary }}</p>
+              {% when None %}
+            {% endmatch %}
+            {% if !role.bullets.is_empty() %}
+            <ul>
+              {% for bullet in role.bullets %}
+              <li>{{ bullet }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
         </div>
         {% endfor %}
       </div>
-    </div>
-  </section>
+    </section>
 
-  <footer>
-    <h2>Контакты</h2>
-    <div>
-      <div class="contacts">
-        {% for contact in page.contacts %}
-        <a href="{{ contact.href }}">{{ contact.label }}</a>
-        {% endfor %}
+    <section>
+      <h2>Проекты</h2>
+      <div class="body">
+        <div class="projects">
+          {% for project in page.projects %}
+          <div class="project">
+            <h3><a href="{{ project.href }}">{{ project.name }}</a></h3>
+            <p class="what">{{ project.what }}</p>
+            <p class="tech">{{ project.tech }}</p>
+          </div>
+          {% endfor %}
+        </div>
       </div>
-      <p class="terminal-switch">Есть терминальная версия: <a href="/terminal">открыть терминал</a>.</p>
-    </div>
-  </footer>
+    </section>
 
-</main>
+    <footer>
+      <h2>Контакты</h2>
+      <div>
+        <div class="contacts">
+          {% for contact in page.contacts %}
+          <a href="{{ contact.href }}">{{ contact.label }}</a>
+          {% endfor %}
+        </div>
+        <p class="terminal-switch">Есть терминальная версия: <a href="/terminal">открыть терминал</a>.</p>
+      </div>
+    </footer>
+
+  </main>
+</div>
 {% endblock %}

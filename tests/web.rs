@@ -166,8 +166,17 @@ async fn homepage_has_a_skip_link_main_and_semantic_table() {
         "skip-link"
     );
     assert!(
-        reply.body.contains("<main id=\"main\""),
-        "main — цель skip-link"
+        reply.body.contains("<main id=\"main\" tabindex=\"-1\">"),
+        "цель skip-ссылки принимает фокус, иначе следующий Tab идёт с начала"
+    );
+
+    // Шапка профиля — вводный блок: она должна остаться вне main, иначе ссылка
+    // «К содержимому» ведёт на начало страницы и ничего не пропускает.
+    let header = reply.body.find("</header>").expect("шапка закрыта");
+    let main = reply.body.find("<main id=\"main\"").expect("main есть");
+    assert!(
+        header < main,
+        "main начинается после шапки и полосы карьеры"
     );
     assert!(
         reply.body.contains("<caption class=\"visually-hidden\">"),

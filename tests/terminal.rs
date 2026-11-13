@@ -83,6 +83,7 @@ async fn terminal_page_prompts_for_a_command() {
         "обычная версия",
         "<h1 class=\"term-host\">",
         "role=\"log\" aria-live=\"polite\"",
+        "tabindex=\"-1\"",
         "hx-sync=\"this:drop\"",
         "class=\"skip-link\"",
     ] {
