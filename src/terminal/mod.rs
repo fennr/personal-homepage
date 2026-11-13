@@ -272,12 +272,12 @@ fn help() -> Vec<Line> {
 
 fn about(site: &Site) -> Vec<Line> {
     let mut lines = vec![Line::output(site.profile.summary.clone()), Line::blank()];
-    lines.extend(
-        site.profile
-            .about
-            .iter()
-            .map(|paragraph| Line::output(paragraph.clone())),
-    );
+    for (index, paragraph) in site.profile.about.iter().enumerate() {
+        if index > 0 {
+            lines.push(Line::blank());
+        }
+        lines.push(Line::output(paragraph.clone()));
+    }
     lines
 }
 
