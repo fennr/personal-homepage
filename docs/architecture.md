@@ -54,7 +54,8 @@ src/web/           маршруты, шаблоны, статика
   static_files.rs  include_dir!, ETag, Content-Type, кэш
 templates/         base.html, index.html, terminal.html, partials/answer.html
 resume/            resume.typ, data.json и шрифты для PDF
-static/            app.css, terminal.css, fonts.css, шрифты, htmx.min.js, resume.pdf
+scripts/fonts      нарезка шрифтов по алфавитам
+static/            app.css, terminal.css, нарезанные шрифты, htmx.min.js, resume.pdf
 tests/             content.rs — правила, terminal.rs и web.rs — HTTP
 ```
 

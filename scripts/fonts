@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+"""Пересобирает шрифты сайта из вариативных исходников в подмножества.
+
+Полный IBM Plex Sans тянет 80 КБ на три файла и при этом не содержит
+кириллицы в узком начертании, поэтому заголовки на русском рисуются системным
+шрифтом. Скрипт собирает один файл на семейство: оси веса и ширины остаются,
+а из глифов выкидывается всё, что не нужно европейским текстам.
+
+Набор символов фиксирован по алфавитам, а не по текущему контенту: правка
+текста не требует пересборки шрифта. `tests/fonts.rs` проверяет, что страницы
+не выходят за пределы этого набора.
+
+Результат лежит в git (`static/fonts`), потому что статика вкомпилирована в
+образ. Запускается вручную: `just fonts`.
+"""
+
+import sys
+import urllib.request
+from pathlib import Path
+
+from fontTools.subset import Options, Subsetter
+from fontTools.ttLib import TTFont
+from fontTools.varLib import instancer
+
+ROOT = Path(__file__).resolve().parent.parent
+CACHE = ROOT / "target" / "fonts-cache"
+OUT = ROOT / "static" / "fonts"
+
+# Закреплённые ревизии: одна и та же ссылка отдаёт один и тот же шрифт.
+SOURCES = {
+    "plex.ttf": (
+        "https://raw.githubusercontent.com/google/fonts/"
+        "8409f033cd7dee08914990602f0df5f5e70e0c14/ofl/ibmplexsans/"
+        "IBMPlexSans%5Bwdth,wght%5D.ttf"
+    ),
+    "mono.ttf": (
+        "https://raw.githubusercontent.com/google/fonts/"
+        "2e05c1cf00a6e4f40a4b931600a90881c26e15cd/ofl/jetbrainsmono/"
+        "JetBrainsMono%5Bwght%5D.ttf"
+    ),
+}
+
+# Что остаётся в шрифте: печатная латиница, Latin-1 (é, ü, ñ в именах),
+# кириллица, типографские тире и кавычки, знак номера, евро, градус, точка
+# посередине. Этого хватает любому русскому и английскому тексту, включая
+# имена с диакритикой.
+ALPHABET = [
+    (0x0020, 0x007E),
+    (0x00A0, 0x00FF),
+    (0x0400, 0x045F),
+    (0x2010, 0x2027),
+    (0x20AC, 0x20AC),
+    (0x2116, 0x2116),
+]
+
+# U+00AD (soft hyphen) попадает в Latin-1, но в наборе вариативного шрифта он
+# ломает нарезку: fontTools падает на его вариациях. Браузер расставляет
+# переносы сам, в текстах этот символ не встречается.
+SKIP = {0x00AD}
+
+
+def characters() -> str:
+    """Все символы алфавитного набора."""
+    return "".join(
+        chr(code)
+        for low, high in ALPHABET
+        for code in range(low, high + 1)
+        if code not in SKIP
+    )
+
+
+def source(name: str) -> Path:
+    """Скачивает исходный шрифт в кэш один раз."""
+    path = CACHE / name
+    if not path.exists():
+        print(f"скачиваю {name}")
+        CACHE.mkdir(parents=True, exist_ok=True)
+        with urllib.request.urlopen(SOURCES[name]) as reply:
+            path.write_bytes(reply.read())
+    return path
+
+
+def build(src: Path, dst: Path, text: str, axes: dict[str, object]) -> None:
+    """Сужает оси вариативного шрифта и оставляет глифы алфавитного набора."""
+    font = TTFont(src)
+    font = instancer.instantiateVariableFont(font, axes, inplace=True)
+
+    options = Options()
+    options.flavor = "woff2"
+    options.layout_features = ["kern", "liga", "calt", "tnum", "locl"]
+    # Хинты в браузерных начертаниях не нужны: у файлов с Google Fonts их тоже
+    # нет, а весят они заметно больше самих глифов.
+    options.hinting = False
+    subsetter = Subsetter(options=options)
+    subsetter.populate(text=text)
+    subsetter.subset(font)
+
+    font.flavor = "woff2"
+    font.save(dst)
+    print(
+        f"{dst.relative_to(ROOT)}: {dst.stat().st_size / 1024:.1f} КБ, "
+        f"{len(font.getGlyphOrder())} глифов"
+    )
+
+
+def main() -> int:
+    text = characters()
+    print(f"алфавитный набор: {len(text)} символов")
+    OUT.mkdir(parents=True, exist_ok=True)
+    try:
+        # Заголовки и подписи набраны узким начертанием, поэтому ось ширины
+        # остаётся: отдельного семейства Condensed в шрифте нет.
+        build(
+            source("plex.ttf"),
+            OUT / "plex.woff2",
+            text,
+            {"wght": (400, 600), "wdth": (75, 100)},
+        )
+        build(source("mono.ttf"), OUT / "mono.woff2", text, {"wght": 400})
+    except OSError as error:
+        print(f"не удалось собрать шрифты: {error}", file=sys.stderr)
+        return 1
+
+    # Список покрытия рядом со шрифтами: по нему тест проверяет, что страницы не
+    # печатают символов вне набора, не разбирая woff2.
+    (OUT / "coverage.txt").write_text(text + "\n", encoding="utf-8")
+    print(f"{OUT.name}/coverage.txt обновлён")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

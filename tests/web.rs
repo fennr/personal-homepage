@@ -337,12 +337,11 @@ async fn stylesheet_is_served_with_cache_headers() {
 
 #[tokio::test]
 async fn fonts_are_served_from_the_image() {
-    let reply = get("/static/fonts.css").await;
-    assert_eq!(reply.status, StatusCode::OK);
-    assert!(
-        reply.body.contains("/static/fonts/"),
-        "пути к файлам шрифтов"
-    );
+    // Тело — двоичный woff2, поэтому проверяется только ответ: тип и кэш
+    // покрыты unit-тестами статики.
+    for path in ["/static/fonts/plex.woff2", "/static/fonts/mono.woff2"] {
+        assert_eq!(status(path).await, StatusCode::OK, "{path}");
+    }
 }
 
 #[tokio::test]

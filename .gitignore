@@ -11,3 +11,6 @@ package-lock.json
 
 # Временный файл `just resume`: данные и PDF лежат в git
 resume/.data.json
+
+# Окружение для `just fonts`: сами шрифты лежат в git
+.venv-fonts

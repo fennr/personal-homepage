@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn content_types_cover_the_static_directory() {
         assert_eq!(content_type("app.css"), "text/css; charset=utf-8");
-        assert_eq!(content_type("fonts/f0.woff2"), "font/woff2");
+        assert_eq!(content_type("fonts/plex.woff2"), "font/woff2");
         assert_eq!(
             content_type("htmx.min.js"),
             "text/javascript; charset=utf-8"
@@ -158,7 +158,7 @@ mod tests {
     fn styles_revalidate_and_fonts_cache_long() {
         assert!(cache_control("app.css").contains("must-revalidate"));
         assert!(cache_control("terminal.css").contains("must-revalidate"));
-        assert!(cache_control("fonts/f0.woff2").contains("604800"));
+        assert!(cache_control("fonts/plex.woff2").contains("604800"));
         assert!(cache_control("og.png").contains("604800"));
     }
 

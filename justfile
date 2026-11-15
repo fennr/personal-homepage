@@ -23,6 +23,12 @@ serve:
 content-check:
     cargo run --quiet
 
+# Пересобрать шрифты: нарезка по алфавитам (нужны python3, fonttools и brotli).
+fonts:
+    python3 -m venv .venv-fonts
+    .venv-fonts/bin/pip install --quiet --upgrade fonttools brotli
+    .venv-fonts/bin/python scripts/fonts
+
 # Пересобрать PDF-резюме: данные из бинаря, вёрстка в Typst (нужен typst).
 resume:
     cargo run --quiet -- resume > resume/.data.json

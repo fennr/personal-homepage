@@ -1,5 +1,16 @@
 /* Терминальная версия: тёмная консоль. Палитра — в docs/decisions.md. */
 
+/* Моноширинный нужен только терминалу: на главной его не объявляют, чтобы
+   браузер не разбирал лишние @font-face. Набор символов тот же, что у
+   основного шрифта (`just fonts`): в поле ввода можно напечатать что угодно. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/static/fonts/mono.woff2) format("woff2");
+}
+
 :root {
   --term-bg: #14181B;
   --term-text: #D7DDE0;

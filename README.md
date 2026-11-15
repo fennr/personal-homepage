@@ -31,6 +31,7 @@ just serve    # http://127.0.0.1:8080
 ```sh
 just check          # форматирование, clippy -D warnings, тесты
 just content-check  # проверить content/ так же, как это сделает сервис
+just fonts          # пересобрать шрифты (нужны fonttools и brotli)
 just resume         # пересобрать PDF-резюме (нужен typst)
 just image          # образ локально: personal-homepage:local
 just release X.Y.Z  # версия, коммит, тег
