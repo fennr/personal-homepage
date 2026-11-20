@@ -18,8 +18,12 @@
     <a class="term-switch" href="/">обычная версия</a>
   </div>
 
-  {# tabindex="-1": переход по skip-ссылке должен переносить фокус в вывод. #}
-  <div id="out" class="term-out" role="log" aria-live="polite" aria-label="Вывод терминала" tabindex="-1">
+  {# tabindex="-1": переход по skip-ссылке должен переносить фокус в вывод.
+     Прокрутка висит на самой ленте, а не на форме: вывод дописывают и форма, и
+     подсказки-ссылки, и после любого ответа новый текст должен быть виден —
+     иначе на телефоне он появляется за нижним краем экрана. #}
+  <div id="out" class="term-out" role="log" aria-live="polite" aria-label="Вывод терминала" tabindex="-1"
+       hx-on::after-swap="this.scrollTop = this.scrollHeight">
     {% include "partials/answer.html" %}
   </div>
 
@@ -30,7 +34,7 @@
         hx-target="#out"
         hx-swap="beforeend"
         hx-sync="this:drop"
-        hx-on::after-request="if (event.detail.successful) { this.reset(); this.command.focus(); const out = document.getElementById('out'); out.scrollTop = out.scrollHeight; }"
+        hx-on::after-request="if (event.detail.successful) { this.reset(); this.command.focus(); }"
         autocomplete="off">
     <label class="prompt" for="command">visitor@fennr:~$</label>
     <input id="command" name="command" type="text" autocomplete="off" autocapitalize="off"

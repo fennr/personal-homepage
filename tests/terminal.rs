@@ -182,3 +182,19 @@ async fn homepage_points_to_the_terminal_version() {
     assert!(reply.body.contains("href=\"/terminal\""));
     assert!(reply.body.contains("терминальная версия"));
 }
+
+#[tokio::test]
+async fn output_scrolls_after_any_answer() {
+    let reply = get("/terminal").await;
+
+    // Вывод дописывают и форма, и подсказки-ссылки. Прокрутка обязана висеть
+    // на самой ленте: на форме она не срабатывала после клика по подсказке, и
+    // на телефоне новый текст оставался за нижним краем экрана.
+    let start = reply.body.find("id=\"out\"").expect("лента вывода");
+    let end = start + reply.body[start..].find('>').expect("тег ленты закрыт");
+    let tag = &reply.body[start..end];
+    assert!(
+        tag.contains("hx-on::after-swap"),
+        "у ленты вывода нет прокрутки после ответа: {tag}"
+    );
+}
